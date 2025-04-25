@@ -1,6 +1,44 @@
 @layer theme, base, antd, components, utilities;
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: forest --default;
+}
+
+@plugin "daisyui/theme" {
+  name: "forest";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98% 0.031 120.757);
+  --color-base-200: #E1EEBC;
+  --color-base-300: oklch(93% 0.127 124.321);
+  --color-base-content: oklch(20.84% 0.008 17.911);
+  --color-primary: #67AE6E;
+  --color-primary-content: oklch(0% 0 0);
+  --color-secondary: #328E6E;
+  --color-secondary-content: oklch(0% 0 0);
+  --color-accent: oklch(70.628% 0.119 185.713);
+  --color-accent-content: oklch(14.125% 0.023 185.713);
+  --color-neutral: #18230F;
+  --color-neutral-content: #E1EEBC;
+  --color-info: oklch(72.06% 0.191 231.6);
+  --color-info-content: oklch(0% 0 0);
+  --color-success: oklch(64.8% 0.15 160);
+  --color-success-content: oklch(0% 0 0);
+  --color-warning: oklch(84.71% 0.199 83.87);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(71.76% 0.221 22.18);
+  --color-error-content: oklch(0% 0 0);
+  --radius-selector: 1rem;
+  --radius-field: 2rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
 
 
 
