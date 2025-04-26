@@ -59,7 +59,8 @@ function App() {
           >
             <Routes>
              
-              <Route  path='/' element={<Header/>}>
+              <Route path='/' element={<Header/>}>
+                <Route index element={<h1 >Home</h1>} />
               
                 <Route element={<LoggedOut />}>
                   <Route index path="sign" element={<SignTabs />} />
@@ -69,13 +70,14 @@ function App() {
                 {/* <Route index element={<RedirectByRole />} /> */}
 
                   {/* admin routes */}
-                    <Route element={<ProtectedRoute requiredRole="admin" />}>
+                    <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
                       <Route path="dashboard" element={<h1>Dashboard</h1>} />
+                      <Route path="users" element={<h1>Users</h1>} />
                     </Route>
                     
                   {/* employe routes */}
-                    <Route element={<ProtectedRoute requiredRole="employe" />}>
-                      <Route index path="dashboard" element={<h1>Dashboard</h1>} />
+                    <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
+                      <Route index path="medicines" element={<h1>Medicines</h1>} />
                     </Route>
               </Route>
             </Routes>
