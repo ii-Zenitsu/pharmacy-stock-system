@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import Auth from "../../assets/api/auth/Auth";
+import Auth from "../../assets/api/Auth";
 import { Tabs } from 'antd';
-import { ArrowRight, Check, Loader2} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2} from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { login, setLoading } from "../Redux/slices/AuthSlice"
+import { addUser } from "../Redux/slices/UserSlice"
 import { useNavigate } from "react-router-dom";
-import logo from "../../../public/icon.png"
+import logo from "../../assets/images/icon.png"
 
 export default function SignTabs() {
-    const [activeTab, setActiveTab] = useState("Sign Up");
+    const [activeTab, setActiveTab] = useState("Login");
     const tabsContent = [
-        { label: "Sign Up", child: <SignupForm setActiveTab={setActiveTab} /> },
+        // { label: "Sign Up", child: <SignupForm setActiveTab={setActiveTab} /> },
         { label: "Login", child: <LoginForm setActiveTab={setActiveTab} /> }
     ];
     return (
@@ -31,6 +32,7 @@ export function SignupForm({ setActiveTab }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { isLoading } = useSelector((state) => state.auth);
+    const { users } = useSelector((state) => state.users);
 
     const [user, setUser] = useState({
         first_name: "",
@@ -39,6 +41,7 @@ export function SignupForm({ setActiveTab }) {
         password: "",
         password_confirmation: "",
         birth_date: "",
+        role: "employe",
     });
 
     const [errors, setErrors] = useState({});
@@ -46,11 +49,11 @@ export function SignupForm({ setActiveTab }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        dispatch(setLoading(true));
-        const res = await Auth.Register(user);
+        !cancel && dispatch(setLoading(true));
+        const res = await Auth.Register(user, false);
         if (res.success) {
-            dispatch(login({user: res.user, token: res.token }));
-            navigate("/");
+                dispatch(login({user: res.user, token: res.token }));
+                navigate("/");
         }
         else {
             dispatch(setLoading(false));
@@ -61,7 +64,7 @@ export function SignupForm({ setActiveTab }) {
 
     return (
         <div className="flex justify-center w-sm md:w-4xl gap-6 bg-base-200 border border-base-300 p-4 rounded-box">
-            <fieldset className="fieldset max-w-lg w-full">
+            <fieldset className="fieldset w-full md:w-1/2">
                 <h2 className="font-bold text-xl">Welcome to PharmaWise</h2>
                 <p className="text-sm max-w-sm mt-2">
                     Create an account to manage your pharmacy operations
@@ -118,7 +121,7 @@ export function SignupForm({ setActiveTab }) {
 }
 
 
-export function LoginForm({ setActiveTab }) {
+export function LoginForm({ setActiveTab = null }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { isLoading } = useSelector((state) => state.auth);
@@ -146,7 +149,7 @@ export function LoginForm({ setActiveTab }) {
 
     return (
         <div className="flex justify-center w-sm md:w-4xl gap-6 bg-base-200 border border-base-300 p-4 rounded-box">
-            <fieldset className="fieldset max-w-lg w-full">
+            <fieldset className="fieldset w-full md:w-1/2">
                 <h2 className="font-bold text-xl">Welcome to PharmaWise</h2>
                 <p className="text-sm max-w-sm mt-2">
                     Log in to track orders and pharmacy tasks
@@ -174,9 +177,9 @@ export function LoginForm({ setActiveTab }) {
     );
 }
 
-function SideLogo() {
+export function SideLogo() {
     return (
-        <div className="hidden md:flex flex-col rounded-3xl max-w-sm p-2 justify-center items-center my-4">
+        <div className="hidden md:flex flex-col rounded-3xl w-1/2 p-2 justify-center items-center my-4">
             <img src={logo} className="w-xs" alt="logo" />
             <div className="text-6xl font-semibold">
                 <span className="text-primary">Pharma</span>

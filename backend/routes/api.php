@@ -10,7 +10,6 @@ use App\Http\Middleware\AlreadyLoggedInMiddleware;
 use App\Http\Middleware\IsAdminEmployeeMiddleware;
 
 Route::middleware(AlreadyLoggedInMiddleware::class)->group(function(){
-    Route::post("/register", [AuthController::class, 'register']);
     Route::post("/login", [AuthController::class, 'login']);
 });
 
@@ -20,6 +19,7 @@ Route::middleware("auth:sanctum")->controller(AuthController::class)->group(func
 });
 
 Route::middleware(isAdminMiddleWare::class)->group(function(){
+    Route::post("/register", [AuthController::class, 'register']);
     Route::apiResource('users', UserController::class);
 });
 

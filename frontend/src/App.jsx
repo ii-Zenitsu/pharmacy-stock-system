@@ -1,15 +1,17 @@
 import { BrowserRouter,Route,Routes } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import { StyleProvider } from '@ant-design/cssinjs';
 import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect } from 'react'
-import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
-import SignTabs from './components/login/Signup'
-import Auth from './assets/api/auth/Auth'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
+import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
+
+import Auth from './assets/api/Auth'
 import Header from './components/Header'
+import SignTabs from './components/login/Signup'
+import UsersList from './components/users/UsersList';
 
 function App() {
   const dispatch = useDispatch();
@@ -72,7 +74,7 @@ function App() {
                   {/* admin routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
                       <Route path="dashboard" element={<h1>Dashboard</h1>} />
-                      <Route path="users" element={<h1>Users</h1>} />
+                      <Route path="users" element={<UsersList />} />
                     </Route>
                     
                   {/* employe routes */}

@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
-import { axios, setBearerToken } from "../axios";
+import { axios, setBearerToken } from "./axios";
 import Cookies from "js-cookie";
-import { login, logout } from '../../../components/Redux/slices/AuthSlice'
+import { login, logout } from '../../components/Redux/slices/AuthSlice'
 
 export default class Auth {
   static async CheckAuth(dispatch) {
@@ -40,7 +40,7 @@ export default class Auth {
     }
   };
 
-  static async Register(info) {
+  static async Register(info, save = true) {
     const defaultError = {
       success: false,
       message: "Server Error",
@@ -49,11 +49,11 @@ export default class Auth {
 
     try {
       const res = await axios.post("register", info);
-      
-      const { token, expires } = res.data;
-      
-      setBearerToken(token);
-      Cookies.set("token", token, { expires, secure: true });
+      if (save) {
+        const { token, expires } = res.data;
+        setBearerToken(token);
+        Cookies.set("token", token, { expires, secure: true });
+      }
       return res.data;
 
     } catch (error) {

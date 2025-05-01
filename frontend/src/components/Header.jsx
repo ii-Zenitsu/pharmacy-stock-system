@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import Auth from '../assets/api/auth/Auth';
+import Auth from '../assets/api/Auth';
 import { logout } from './Redux/slices/AuthSlice';
 import { Outlet } from 'react-router-dom';
 import { motion, useAnimation } from "framer-motion";
-import logo from "../../public/icon.png"
+import logo from "../assets/images/icon.png";
 
 
 export default function Header() {
@@ -66,7 +66,7 @@ export default function Header() {
         <div className="navbar bg-base-100 shadow-sm z-[-2]">
           <NavLink className="navbar-start w-fit ml-2 mr-6 gap-2" to="/">
             <img className='h-12' src={logo} alt="" />
-            <div className="text-lg font-semibold w-40">
+            <div className="text-lg logo font-semibold w-40">
                 <span className="text-primary">Pharma</span>
                 <span className="text-[#1e6f61]">WISE</span>
             </div>
