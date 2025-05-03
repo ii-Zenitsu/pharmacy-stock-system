@@ -286,6 +286,7 @@ export default function UsersList() {
 
 export function SignupForm({ cancel}) {
   const dispatch = useDispatch()
+  const [messageApi, contextHolder] = message.useMessage()
   const [user, setUser] = useState({
       first_name: "",
       last_name: "",
@@ -295,9 +296,18 @@ export function SignupForm({ cancel}) {
       birth_date: "",
       role: "employe",
   });
-
+  const [key, setKey] = useState(0);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setErrors({})
+    setUser({ first_name: "", last_name: "", email: "", password: "",
+      password_confirmation: "", birth_date: "", role: "employe"})
+    setLoading(false)
+    setKey((prevKey) => prevKey + 1);
+
+  }
   
   const handleSubmit = async (e) => {
       e.preventDefault();
@@ -306,23 +316,25 @@ export function SignupForm({ cancel}) {
       const res = await Auth.Register(user, false);
       if (res.success) {
         dispatch(addUser(res.user))
+        messageApi.success("User added successfully")
         cancel()
+        resetForm()
       }
       else {
-          setLoading(false);
-          setErrors(res.errors)
+        setLoading(false);
+        setErrors(res.errors)
       }
       
   };
 
   return (
-      <div className="flex justify-center w-sm md:w-4xl gap-6 bg-base-200 border border-base-300 p-4 rounded-box">
+      <div className="flex justify-center w-sm md:w-4xl gap-6 bg-base-200 border border-base-300 p-4 rounded-box">{contextHolder}
           <fieldset className="fieldset w-full md:w-1/2">
               <h2 className="font-bold text-xl">Welcome to PharmaWise</h2>
               <p className="text-sm max-w-sm mt-2">
                   Create an account to manage your pharmacy operations
               </p>
-              <form className="mt-2 flex flex-col gap-1.5" onSubmit={handleSubmit} >
+              <form key={key} className="mt-2 flex flex-col gap-1.5" onSubmit={handleSubmit} >
                   <div className="flex flex-col md:flex-row gap-2">
                       <label className="floating-label w-full not-focus:[&>span]:text-sm not-focus:[&>span]:bg-base-200">
                           <input className={`input w-full validator ${errors?.first_name ? "input-error!" : ""}`} placeholder="First name" type="text" onChange={e => setUser({ ...user, first_name: e.target.value.trim() })} value={user.first_name} required />
