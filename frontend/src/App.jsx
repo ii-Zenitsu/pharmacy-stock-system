@@ -13,6 +13,7 @@ import Header from './components/Header'
 import dashboard from './components/admin/dashboard'
 import home from './components/admin/Header'
 import medicines from './components/admin/medicines'
+import internaute from './components/internaute';
 
 function App() {
   const dispatch = useDispatch();
