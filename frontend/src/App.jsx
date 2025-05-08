@@ -10,9 +10,9 @@ import Auth from './assets/api/auth/Auth'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
 import Header from './components/Header'
-import dashboard from './components/admin/dashboard'
-import home from './components/admin/Header'
-import medicines from './components/admin/medicines'
+import Dashboard from './components/admin/dashboard'
+import Home from './components/admin/Home'
+import Medicines from './components/admin/medicines'
 
 function App() {
   const dispatch = useDispatch();
@@ -63,7 +63,7 @@ function App() {
             <Routes>
              
               <Route path='/' element={<Header/>}>
-                <Route index element={<h1 >Home</h1>} />
+                <Route index element={<Home />} />
               
                 <Route element={<LoggedOut />}>
                   <Route index path="sign" element={<SignTabs />} />
@@ -74,14 +74,14 @@ function App() {
 
                   {/* admin routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                      <Route path="./components/admin/dashboard" element={<h1>Dashboard</h1>} />
+                      <Route path="dashboard" element={<Dashboard />} />
                       <Route path="users" element={<h1>Users</h1>} />
-                      <Route path="./components/admin/medicines" element={<h1>Medicines</h1>} />
+                      <Route path="medicines" element={<Medicines />} />
                     </Route>
                     
                   {/* employe routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
-                      <Route index path="medicines" element={<h1>Medicines</h1>} />
+                      <Route index path="medicines" element={<Medicines />} />
                     </Route>
               </Route>
             </Routes>
