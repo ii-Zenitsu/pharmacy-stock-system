@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\isAdminMiddleWare;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProviderController;
 use App\Http\Middleware\isEmployeMiddleWare;
 use App\Http\Middleware\AlreadyLoggedInMiddleware;
 use App\Http\Middleware\IsAdminEmployeeMiddleware;
@@ -39,6 +41,10 @@ Route::post('/email/resend', function (Request $request) {
 Route::middleware(["auth:sanctum", 'verified', isAdminMiddleWare::class])->group(function(){
     Route::post("/register", [AuthController::class, 'register']);
     Route::apiResource('users', UserController::class);
+    Route::apiResource("providers",ProviderController::class);
+    Route::apiResource("orders",OrderController::class);
+   
+
 });
 
 // Route::middleware(["auth:sanctum", 'verified', isEmployeMiddleWare::class])->group(function(){
@@ -55,3 +61,6 @@ Route::middleware(["auth:sanctum", 'verified', IsAdminEmployeeMiddleware::class]
 // internaute routes
 Route::get("/medicines", [MedicineController::class, 'index']);
 Route::get("/medicines/{id}", [MedicineController::class, 'show']);
+
+
+
