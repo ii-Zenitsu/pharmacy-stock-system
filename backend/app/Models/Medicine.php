@@ -25,6 +25,11 @@ class Medicine extends Model
         'reorder_quantity'
     ];
 
+    protected $with = [
+        'provider',
+        'orders'
+    ];
+
     public function provider()
     {
         return $this->belongsTo(Provider::class);

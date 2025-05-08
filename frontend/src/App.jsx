@@ -12,6 +12,7 @@ import Auth from './assets/api/Auth'
 import Header from './components/Header'
 import SignTabs from './components/login/Signup'
 import UsersList from './components/users/UsersList';
+import MedicinesList from './components/medicines/MedicinesList';
 
 function App() {
   const dispatch = useDispatch();
@@ -79,7 +80,7 @@ function App() {
                     
                   {/* employe routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
-                      <Route index path="medicines" element={<h1>Medicines</h1>} />
+                      <Route index path="medicines" element={<MedicinesList />} />
                     </Route>
               </Route>
             </Routes>
