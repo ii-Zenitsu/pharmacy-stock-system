@@ -68,6 +68,7 @@ function App() {
             <Routes>
               <Route path='/' element={<Header />}>
                 <Route index element={<h1>Home</h1>} />
+                <Route path='/profile' element={<h1>Profile</h1>} />
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
@@ -108,4 +109,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
