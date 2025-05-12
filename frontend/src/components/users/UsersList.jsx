@@ -17,6 +17,7 @@ export default function UsersList() {
   const [adding, setAdding] = useState(false)
   const [loading, setLoading] = useState(true)
   const [messageApi, contextHolder] = message.useMessage()
+  const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
   
   const [query, setQuery] = useState("")
   const usersFuse = new Fuse(users, { keys: ["first_name", "last_name", "email"], threshold: 0.3 })
@@ -199,7 +200,14 @@ export default function UsersList() {
             ),
             spinning: loading,
           }}
-          pagination={{ pageSize: 6 }}
+          pagination={{
+            pageSize: pageSize ,
+            pageSizeOptions: [6, 12, 24, 50],
+            className: "m-2",
+            position: ["topCenter"],
+            showSizeChanger: true,
+            onShowSizeChange: (c, size) => {setPageSize(size);}
+          }}
         />
       </div>
       <div className={`fixed top-16 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ${user ? "opacity-100 visible" : "opacity-0 invisible"}`} />

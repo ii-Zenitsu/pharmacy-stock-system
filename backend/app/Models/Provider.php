@@ -15,9 +15,6 @@ class Provider extends Model
         'email',
         'phone',
     ];
-    protected $with = [
-        'medicines'
-    ];
 
     public function medicines()
     {

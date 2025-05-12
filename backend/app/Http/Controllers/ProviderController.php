@@ -16,7 +16,6 @@ class ProviderController extends Controller
 
     public function store(Request $request)
     {
-        // Validation des données de la requête
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:providers,email',

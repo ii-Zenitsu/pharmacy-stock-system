@@ -38,29 +38,22 @@ Route::post('/email/resend', function (Request $request) {
 })->middleware(['auth:sanctum', 'signed', 'throttle:6,1'])->name('verification.resend');
 
 
-Route::middleware(["auth:sanctum", 'verified', isAdminMiddleWare::class])->group(function(){
-    Route::post("/register", [AuthController::class, 'register']);
-    Route::apiResource('users', UserController::class);
-    Route::apiResource("providers",ProviderController::class);
-    Route::apiResource("orders",OrderController::class);
-   
+Route::middleware(["auth:sanctum", 'verified'])->group(function(){
+    // Admin specific routes
+    Route::middleware([isAdminMiddleWare::class])->group(function(){
+        Route::post("/register", [AuthController::class, 'register']);
+        Route::apiResource('users', UserController::class);
+        Route::apiResource("providers",ProviderController::class);
+        Route::apiResource("orders",OrderController::class);
+    });
 
+    // Admin or Employee routes
+    Route::middleware([IsAdminEmployeeMiddleware::class])->group(function(){
+        Route::apiResource("medicines",MedicineController::class);
+    });
 });
 
-// Route::middleware(["auth:sanctum", 'verified', isEmployeMiddleWare::class])->group(function(){
-    
-    
-// });
 
-
-// admin and employe routes
-Route::middleware(["auth:sanctum", 'verified', IsAdminEmployeeMiddleware::class])->group(function(){
-    Route::apiResource("medicines",MedicineController::class)->except(['index', 'show']);
-});
-
-// internaute routes
-Route::get("/medicines", [MedicineController::class, 'index']);
-Route::get("/medicines/{id}", [MedicineController::class, 'show']);
-
-
-
+// Public routes
+Route::get("/public/medicines", [MedicineController::class, 'index']);
+Route::get("/public/medicines/{id}", [MedicineController::class, 'show']);

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\MedicineResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderResource extends JsonResource
@@ -16,8 +17,10 @@ class OrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'medicine' => $this->medicine,
+            'medicine' => new MedicineResource($this->whenLoaded('medicine')),
             'quantity' => $this->quantity,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

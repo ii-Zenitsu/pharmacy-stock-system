@@ -10,13 +10,13 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with('medicine')->get();
+        $orders = Order::all();
         return OrderResource::collection($orders);
     }
 
     public function show($id)
     {
-        $order = Order::with('medicine')->findOrFail($id);
+        $order = Order::findOrFail($id);
         return new OrderResource($order);
     }
 

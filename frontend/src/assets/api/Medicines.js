@@ -5,7 +5,10 @@ export default class Medicines {
   static async request(method, url, data = null, context = "Request") {
     try {
       const res = await axios({ method, url, data });
-      return res.data;
+      return {
+        success: true,
+        data: res.data.data,
+      };
     } catch (error) {
       console.log(error);
       return Medicines.formatError(error, context);

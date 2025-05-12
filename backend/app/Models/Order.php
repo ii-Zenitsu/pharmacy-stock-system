@@ -14,9 +14,6 @@ class Order extends Model
         'medicine_id',
         'quantity',
     ];
-    protected $with = [
-        'medicine'
-    ];
 
     public function medicine()
     {

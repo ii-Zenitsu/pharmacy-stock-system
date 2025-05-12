@@ -32,7 +32,6 @@ export function SignupForm({ setActiveTab }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { isLoading } = useSelector((state) => state.auth);
-    const { users } = useSelector((state) => state.users);
 
     const [user, setUser] = useState({
         first_name: "",

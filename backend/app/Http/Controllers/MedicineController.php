@@ -10,7 +10,7 @@ class MedicineController extends Controller
 {
     public function index()
     {
-        $medicines = Medicine::with('provider')->get();
+        $medicines = Medicine::all();
         return MedicineResource::collection($medicines);
         
     }
@@ -18,7 +18,7 @@ class MedicineController extends Controller
 
     public function show($id)
     {
-        $medicine = Medicine::with(['provider', 'orders'])->findOrFail($id);
+        $medicine = Medicine::findOrFail($id);
         return new MedicineResource($medicine);
     }
 

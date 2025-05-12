@@ -63,7 +63,7 @@ export default function Header() {
 
     return (
       <>
-        <div className="navbar bg-base-100 shadow-sm z-[-2]">
+        <div className="navbar bg-base-100 border-b-2 border-base-200 z-[-2]">
           <NavLink className="navbar-start w-fit ml-2 mr-6 gap-2" to="/">
             <img className='h-12' src={logo} alt="" />
             <div className="text-lg logo font-semibold w-40">
@@ -74,16 +74,22 @@ export default function Header() {
           
           <div className="gap-5 hidden md:inline-flex relative z-[1]">
             <div data-path="/" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/">Home</NavLink></div>
-            {user?.role === "admin" && (
+
+            {user && (
               <>
-                <div data-path="/dashboard" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/dashboard">Dashboard</NavLink></div>
-                <div data-path="/medicines" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/medicines">Medicines</NavLink></div>
-                <div data-path="/users" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/users">Users</NavLink></div>
+                <div data-path="/menu" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/menu">Menu</NavLink></div>
+                <div data-path="/profile" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/profile">Profile</NavLink></div>
+              </>
+            )}
+            {/* {user?.role === "admin" && (
+              <>
+                <div data-path="/menu" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/menu">Menu</NavLink></div>
+                <div data-path="/profile" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/medicines">Medicines</NavLink></div>
               </>
             )}
             {user?.role === "employe" && (
               <div data-path="/medicines" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/medicines">Medicines</NavLink></div>
-            )}
+            )} */}
             <motion.div className="absolute z-[-1] -top-1 rounded-full left-0 h-8 bg-primary" animate={controls} initial={{ x: 0, width: 0 }} />
           </div>
             
@@ -102,6 +108,7 @@ export default function Header() {
                 </div>
                 <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                   <li className='text-center font-semibold mb-2'>Welcome {user.first_name} ({user.role})</li>
+                  <li><button>Profile</button></li>
                   <li><button onClick={logoutUser}>Logout</button></li>
                 </ul>
               </div>

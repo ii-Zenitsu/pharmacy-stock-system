@@ -22,7 +22,6 @@ input[type=number] {
 
 
 
-
 @plugin "daisyui" {
   themes: forest --default;
 }

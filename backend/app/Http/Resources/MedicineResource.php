@@ -39,7 +39,7 @@ class MedicineResource extends JsonResource
                 'automatic_reorder' => $this->automatic_reorder,
                 'reorder_quantity' => $this->reorder_quantity,
                 'provider' => $this->provider,
-                'orders' => $this->orders,
+                // 'orders' => $this->orders,
                 'created_at' => $this->created_at,
             ];
         }

@@ -16,17 +16,21 @@ export default class Auth {
       setBearerToken(tokenFromCookie);
       const res = await this.GetUser();
       
-      if (res.success) {
+      if (res.success && res.user) {
         dispatch(login({
           user: res.user,
           token: tokenFromCookie
         }));
         return { initialized: true, authenticated: true };
+      } else {
+        if (res.status === 401 || res.status === 403) {
+          dispatch(logout());
+          Cookies.remove('token');
+          return { initialized: true, authenticated: false, error: res.message || 'Authentication token is invalid.' };
+        } else {
+          return { initialized: true, authenticated: false, error: res.message || 'Server is unreachable or encountered an error.' };
+        }
       }
-      
-      dispatch(logout());
-      Cookies.remove('token');
-      return { initialized: true, authenticated: false };
       
     } catch (error) {
       console.error('Failed to load user:', error);
@@ -35,7 +39,7 @@ export default class Auth {
       return { 
         initialized: true, 
         authenticated: false, 
-        error: error.message 
+        error: error.message || 'An unexpected error occurred during authentication check.'
       };
     }
   };
