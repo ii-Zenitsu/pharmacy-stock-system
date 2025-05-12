@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import { axios, setBearerToken } from "./axios";
 import Cookies from "js-cookie";
-import { login, logout } from '../../components/Redux/slices/AuthSlice'
+import { login, logout, setLoading } from '../../components/Redux/slices/AuthSlice'
 
 export default class Auth {
   static async CheckAuth(dispatch) {
@@ -28,6 +28,7 @@ export default class Auth {
           Cookies.remove('token');
           return { initialized: true, authenticated: false, error: res.message || 'Authentication token is invalid.' };
         } else {
+          dispatch(setLoading(false));
           return { initialized: true, authenticated: false, error: res.message || 'Server is unreachable or encountered an error.' };
         }
       }

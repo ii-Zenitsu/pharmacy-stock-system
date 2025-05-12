@@ -3,31 +3,46 @@ import { useSelector } from 'react-redux';
 import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard, Pill, Boxes, ClipboardList, Building2, MapPin, Users, FileText,
-  Menu as MenuIcon,
-  ChevronLeft, ChevronRight, X as XIcon
+  ChevronLeft, ChevronRight, MoreVertical
 } from 'lucide-react';
-import MedicinesList from './medicines/MedicinesList';
-import UsersList from './users/UsersList';
 
+const SidebarLink = ({ to, icon: Icon, children, isExpanded, isMobileContextLink = false }) => {
+  if (isMobileContextLink) {
+    return (
+      <li className="flex-shrink-0">
+        <NavLink
+          to={to}
+          className={({ isActive }) =>
+            `flex items-center rounded-full transition-colors duration-150 ease-in-out px-2.5 py-2
+            ${isActive ? "bg-gray-200 text-[#0d5c3f]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`
+          }
+          title={children}
+        >
+          <Icon size={20} className="mr-1" />
+          <span className="text-sm font-medium whitespace-nowrap">{children}</span>
+        </NavLink>
+      </li>
+    );
+  }
 
-const SidebarLink = ({ to, icon: Icon, children, isExpanded }) => (
-  <li>
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `btn btn-ghost w-full ${
-          isActive ? "btn-active" : "font-normal"
-        } ${isExpanded ? "justify-start" : "justify-center"}`
-      }
-      title={!isExpanded && typeof children === 'string' ? children : undefined}
-    >
-      <Icon size={18} strokeWidth={2} />
-      {isExpanded && <span className="truncate transition-opacity duration-150">{children}</span>}
-    </NavLink>
-  </li>
-);
+  return (
+    <li>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `btn btn-ghost w-full ${
+            isActive ? "btn-active" : "font-normal"
+          } ${isExpanded ? "justify-start" : "justify-center p-0"}`
+        }
+        title={!isExpanded && typeof children === 'string' ? children : undefined}
+      >
+        <Icon size={18} strokeWidth={2} />
+        {isExpanded && <span className="truncate transition-opacity duration-150">{children}</span>}
+      </NavLink>
+    </li>
+  );
+};
 
-// Renamed the original SideBar to avoid conflict with the Menu export
 function InternalSideBar({ role, isExpanded, onToggleExpand, isMobileContext = false }) {
     const adminItems = [
       { to: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -48,22 +63,50 @@ function InternalSideBar({ role, isExpanded, onToggleExpand, isMobileContext = f
 
     const menuItems = role === "admin" ? adminItems : employeeItems;
 
+    if (isMobileContext) {
+
+      return (
+        <div className="flex items-center justify-between px-1 pt-1 relative">
+            <nav className="flex-grow overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+                <ul className="flex items-center">
+                    {menuItems.map((item) => (
+                        <SidebarLink
+                            key={item.to}
+                            to={item.to}
+                            icon={item.icon}
+                            isMobileContextLink={true}
+                        >
+                            {item.label}
+                        </SidebarLink>
+                    ))}
+                    <div className='w-16! h-full'></div>
+                </ul>
+            </nav>
+            <div className="w-16 h-full bg-gradient-to-l from-white to-transparent absolute right-0" />
+            {/* <span className="h-full w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" /> */}
+        </div>
+      );
+    }
+
     return (
       <>
-        <div className="flex items-center justify-between p-4 border-b border-[#6ab04c]/10 h-16">
-          {isExpanded && <span className="text-xl font-semibold text-[#0d5c3f] whitespace-nowrap">PharmaWise</span>}
           <button
             onClick={onToggleExpand}
-            className="p-1.5 rounded-md text-gray-600 hover:bg-[#e1f3d8] hover:text-[#0d5c3f]"
-            aria-label={isMobileContext ? "Close sidebar" : (isExpanded ? "Collapse sidebar" : "Expand sidebar")}
+            className="p-1.5 rounded-full text-gray-600 border bg-white hover:bg-base-300 hover:cursor-pointer hover:text-[#0d5c3f] absolute right-2 top-2 sm:top-1/2 sm:-translate-y-1/2 sm:-right-4"
+            aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
           >
-            {isMobileContext ? <XIcon size={20} /> : (isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />)}
+            {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
-        </div>
-        <nav className="flex-grow p-4 overflow-y-auto">
+        <nav className="flex-grow p-4 pr-6 overflow-y-auto">
           <ul className="space-y-1">
             {menuItems.map((item) => (
-              <SidebarLink key={item.to} to={item.to} icon={item.icon} isExpanded={isExpanded}>
+              <SidebarLink
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                isExpanded={isExpanded}
+                isMobileContextLink={false}
+              >
                 {item.label}
               </SidebarLink>
             ))}
@@ -76,78 +119,38 @@ function InternalSideBar({ role, isExpanded, onToggleExpand, isMobileContext = f
 export default function Menu() {
     const { user } = useSelector((state) => state.auth);
     const [isDesktopSidebarExpanded, setIsDesktopSidebarExpanded] = useState(true);
-    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     const toggleDesktopSidebar = () => setIsDesktopSidebarExpanded(!isDesktopSidebarExpanded);
-    const openMobileSidebar = () => setIsMobileSidebarOpen(true);
-    const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth >= 768) { // Tailwind's 'md' breakpoint
-                setIsMobileSidebarOpen(false);
-            }
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    
-    const headerHeight = "4rem"; 
+    const headerHeight = "4rem";
 
     return (
-      <div className="flex" style={{ height: `calc(100vh - ${headerHeight})` }}>
-        {/* Desktop Sidebar */}
-        <aside
-          className={`hidden md:flex flex-col bg-white border-r border-[#6ab04c]/20 transition-all duration-300 ease-in-out
-            ${isDesktopSidebarExpanded ? "min-w-48" : "w-20"}
-          `}
-        >
+      <div className="flex flex-col" style={{ height: `calc(100vh - ${headerHeight})` }}>
+        <div className="md:hidden bg-white border-b border-[#6ab04c]/20 shadow-sm">
           <InternalSideBar
             role={user?.role}
-            isExpanded={isDesktopSidebarExpanded}
-            onToggleExpand={toggleDesktopSidebar}
+            isMobileContext={true}
           />
-        </aside>
+        </div>
 
-        {/* Mobile Toggle Button - Appears below the main site header */}
-        <button
-          onClick={openMobileSidebar}
-          className="md:hidden fixed left-4 p-2 bg-white rounded-md shadow-lg text-[#0d5c3f] z-40"
-          style={{ top: `calc(${headerHeight} + 1rem)` }}
-          aria-label="Open sidebar"
-        >
-          <MenuIcon size={24} />
-        </button>
-
-        {/* Mobile Sidebar (Overlay) */}
-        {isMobileSidebarOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="md:hidden fixed inset-0 bg-black/30 z-30"
-              onClick={closeMobileSidebar}
-              aria-hidden="true"
+        <div className="flex flex-1 overflow-hidden">
+          <aside
+            className={`hidden md:flex flex-col relative bg-white border-r border-[#6ab04c]/20 transition-all duration-300 ease-in-out
+              ${isDesktopSidebarExpanded ? "w-48" : "w-20"}
+            `}
+          >
+            <InternalSideBar
+              role={user?.role}
+              isExpanded={isDesktopSidebarExpanded}
+              onToggleExpand={toggleDesktopSidebar}
+              isMobileContext={false}
             />
-            {/* Sidebar Panel */}
-            <aside
-              className={`md:hidden fixed inset-y-0 left-0 flex flex-col bg-white border-r border-[#6ab04c]/20 w-64 z-40
-                         transform transition-transform duration-300 ease-in-out
-                         ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-            >
-              <InternalSideBar
-                role={user?.role}
-                isExpanded={true} // Mobile sidebar is always fully expanded when open
-                onToggleExpand={closeMobileSidebar} // The toggle button now acts as a close button
-                isMobileContext={true}
-              />
-            </aside>
-          </>
-        )}
+          </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          <Outlet /> {/* Content for specific pages like MedicinesList will be rendered here */}
-        </main>
+          <main className="flex-1 overflow-y-auto p-1 bg-gray-50">
+            <Outlet />
+          </main>
+        </div>
       </div>
     );
 }
