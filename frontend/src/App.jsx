@@ -13,6 +13,7 @@ import Header from './components/Header'
 import SignTabs from './components/login/Signup'
 import UsersList from './components/users/UsersList';
 import MedicinesList from './components/medicines/MedicinesList';
+import Home from './components/Home';
 import Menu from './components/Menu';
 
 function App() {
@@ -67,7 +68,7 @@ function App() {
           >
             <Routes>
               <Route path='/' element={<Header />}>
-                <Route index element={<h1>Home</h1>} />
+                <Route path='/' element={<Home/>} />
                 <Route path='/profile' element={<h1>Profile</h1>} />
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
