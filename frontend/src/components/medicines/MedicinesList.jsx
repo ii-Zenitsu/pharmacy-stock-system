@@ -301,7 +301,6 @@ export default function MedicinesList() {
                       disabled={!editing}
                     />
                   </label>
-
                   <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
                     <span className="label font-bold w-36">Bar Code</span>
                     <input
