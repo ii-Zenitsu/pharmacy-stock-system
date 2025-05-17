@@ -1,15 +1,32 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { message, Popconfirm, Modal, Form, Input, Table, Spin } from "antd";
-import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info } from "lucide-react";
+import { message, Popconfirm, Table, Spin } from "antd";
+import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, ArrowBigDownDash, ArrowBigDownDashIcon, ChevronDown, PackageOpen } from "lucide-react";
 import Medicines from "../../assets/api/Medicines";
+import Providers from "../../assets/api/Providers";
 import Fuse from "fuse.js";
 import { setMedicines, deleteMedicine, updateMedicine, addMedicine } from "../Redux/slices/MedicineSlice";
+import { setProviders } from "../Redux/slices/ProviderSlice";
 import defaultPic from "../../assets/images/defaultPic.png";
+import { CheckboxInput, SelectInput, TextInput } from "../UI/MyInputs";
+
+const initialNewMedicineState = {
+  name: "",
+  bar_code: "",
+  dosage: "",
+  formulation: "",
+  price: 0,
+  alert_threshold: 0,
+  provider_id: null,
+  automatic_reorder: false,
+  reorder_quantity: 0,
+  image: null,
+};
 
 export default function MedicinesList() {
   const dispatch = useDispatch();
-  const { medicines } = useSelector((state) => state.medicines)
+  const { medicines } = useSelector((state) => state.medicines);
+  const { providers } = useSelector((state) => state.providers);
   const [medicine, setMedicine] = useState(null);
   const [editedMedicine, setEditedMedicine] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -17,6 +34,9 @@ export default function MedicinesList() {
   const [loading, setLoading] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
+
+  const [dosageValue, setDosageValue] = useState("");
+  const [dosageUnit, setDosageUnit] = useState("mg");
 
   const [query, setQuery] = useState("");
   const medicinesFuse = new Fuse(medicines, { keys: ["name", "bar_code"], threshold: 0.3 });
@@ -28,6 +48,13 @@ export default function MedicinesList() {
       const response = await Medicines.GetAll();
       if (response.success) {
         dispatch(setMedicines(response.data));
+        console.log("Medicines :", response.data);
+        const providersResponse = await Providers.GetAll();
+        if (providersResponse.success) {
+          dispatch(setProviders(providersResponse.data));
+        } else {
+          messageApi.error(providersResponse.message);
+        }
       } else {
         messageApi.error(response.message);
       }
@@ -54,6 +81,30 @@ export default function MedicinesList() {
     fetchMedicines();
   }, []);
 
+  useEffect(() => {
+    if (editedMedicine && editedMedicine.dosage) {
+      const parts = editedMedicine.dosage.split('-');
+      if (parts.length === 2) {
+        setDosageValue(parts[0]);
+        setDosageUnit(parts[1]);
+      } else {
+        setDosageValue(editedMedicine.dosage);
+        setDosageUnit("mg");
+      }
+    } else if (adding) {
+      setDosageValue("");
+      setDosageUnit("mg");
+    }
+  }, [editedMedicine, adding]);
+
+  // Effect to reconstruct dosage string when parts change
+  useEffect(() => {
+    if (editing || adding) {
+      const newDosageString = dosageValue ? `${dosageValue}-${dosageUnit}` : "";
+      setEditedMedicine(prev => ({ ...prev, dosage: newDosageString }));
+    }
+  }, [dosageValue, dosageUnit, editing, adding]);
+
   const handleDelete = async (id) => {
     try {
       const response = await Medicines.Delete(id);
@@ -69,6 +120,34 @@ export default function MedicinesList() {
     }
   };
 
+  const handleCreateMedicine = async (values) => {
+    try {
+      if (!values) return;
+      if (!values.name || !values.bar_code || !values.expiration_date) {
+        messageApi.error("Name, Bar Code, and Expiration Date are required.");
+        return;
+      }
+      const response = await Medicines.Create(values);
+      if (response.success) {
+        dispatch(addMedicine(response.data));
+        messageApi.success("Medicine added successfully");
+        goBack();
+      } else {
+        messageApi.error(response.message || "Failed to add medicine.");
+        if (response.errors) {
+          console.error("Validation errors:", response.errors);
+          const firstErrorKey = Object.keys(response.errors)[0];
+          if (firstErrorKey) {
+            messageApi.error(`${firstErrorKey}: ${response.errors[firstErrorKey][0]}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Create error:", error);
+      messageApi.error(error.response?.data?.message || error.response?.data?.error || "Error adding medicine");
+    }
+  };
+
   const showMedicine = (medicine) => {
     setMedicine(medicine);
     setEditedMedicine({ ...medicine });
@@ -78,6 +157,9 @@ export default function MedicinesList() {
     setMedicine(null);
     setEditing(false);
     setAdding(false);
+    setEditedMedicine(null);
+    setDosageValue("");
+    setDosageUnit("mg");
   };
 
   const editMedicine = async (values) => {
@@ -118,6 +200,7 @@ export default function MedicinesList() {
       dataIndex: "dosage",
       key: "dosage",
       align: "center",
+      render: (text) => text.replace("-", " "),
     },
     {
       title: "Formulation",
@@ -126,29 +209,11 @@ export default function MedicinesList() {
       align: "center",
     },
     {
-      title: "Expiration Date",
-      dataIndex: "expiration_date",
-      key: "expiration_date",
-      align: "center",
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-      align: "center",
-    },
-    {
       title: "Price",
       dataIndex: "price",
       key: "price",
       align: "center",
-      render: (price) => `$ ${price}`,
-    },
-    {
-      title: "Location",
-      dataIndex: "location",
-      key: "location",
-      align: "center",
+      render: (price) => `${price} MAD`,
     },
     {
       title: <div className="capitalize">Details</div>,
@@ -197,7 +262,14 @@ export default function MedicinesList() {
             placeholder="Search"
           />
         </label>
-        <button className="btn btn-primary btn-sm" onClick={() => setAdding(true)}>
+        <button className="btn btn-primary btn-sm" onClick={() => {
+          setMedicine(null);
+          setEditedMedicine({ ...initialNewMedicineState });
+          setAdding(true);
+          setEditing(true);
+          setDosageValue("");
+          setDosageUnit("mg");
+        }}>
           <Plus size={16} /> Add
         </button>
       </div>
@@ -229,9 +301,9 @@ export default function MedicinesList() {
           }}
         />
       </div>
-      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${medicine ? "opacity-100 visible" : "opacity-0 invisible"}`} />
-      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-4 transform transition-transform duration-300 ease-in ${medicine ? "translate-x-0" : "translate-x-full"}`}>
-        {medicine && (
+      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${(medicine || adding) ? "opacity-100 visible" : "opacity-0 invisible"}`} />
+      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-4 transform transition-transform duration-300 ease-in ${(medicine || adding) ? "translate-x-0" : "translate-x-full"}`}>
+         {medicine && (
           <div className="flex flex-col bg-base-200 w-full gap-4 mx-auto mt-16 shadow-2xl p-6 rounded-2xl">
             <div className="flex justify-between items-center">
               {!editing ? (
@@ -290,103 +362,212 @@ export default function MedicinesList() {
               <div className="flex flex-col w-2/3 gap-6">
                 <div className="flex gap-2 text-2xl items-center font-semibold" ><Info /><span>Basic information</span></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Name</span>
-                    <input
-                      type="text"
-                      placeholder="Enter medicine name"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.name}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, name: e.target.value })}
-                      disabled={!editing}
-                    />
-                  </label>
+                  <TextInput
+                    label="Name"
+                    value={editedMedicine?.name}
+                    onChange={e => setEditedMedicine({ ...editedMedicine, name: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    placeholder="Enter medicine name"
+                  />
+                  <TextInput
+                    label="Bar Code"
+                    value={editedMedicine?.bar_code}
+                    onChange={e => setEditedMedicine({ ...editedMedicine, bar_code: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    placeholder="Enter bar code"
+                  />
 
                   <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Bar Code</span>
+                    <span className="label font-bold w-56">Dosage</span>
                     <input
-                      type="text"
-                      placeholder="Enter bar code"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.bar_code}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, bar_code: e.target.value })}
+                      type="number"
+                      placeholder="Enter dosage value"
+                      className="disabled:cursor-text! w-full"
+                      value={dosageValue}
+                      onChange={(e) => setDosageValue(e.target.value)}
                       disabled={!editing}
                     />
-                  </label>
-
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Dosage</span>
-                    <input
-                      type="text"
-                      placeholder="Enter dosage"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.dosage}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, dosage: e.target.value })}
+                    <select
+                      className="outline-0 w-fit p-0 rounded-l-none pl-2 pr-1 border-l h-7 border-black/10 disabled:cursor-text! disabled:bg-transparent"
+                      value={dosageUnit}
+                      onChange={(e) => setDosageUnit(e.target.value)}
                       disabled={!editing}
-                    />
-                  </label>
-
-                  <label className={`select w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Formulation</span>
-                    <select className="disabled:cursor-text!" value={editedMedicine?.formulation} onChange={(e) => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })} disabled={!editing}>
-                      <option value="tablet">Tablet</option>
-                      <option value="syrup">Syrup</option>
-                      <option value="injection">Injection</option>
-                      <option value="ointment">Ointment</option>
+                    >
+                      <option value="mg">mg</option>
+                      <option value="ml">ml</option>
+                      <option value="g">g</option>
                     </select>
                   </label>
 
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Expiration Date</span>
-                    <input
-                      type="date"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.expiration_date?.split("T")[0]}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, expiration_date: e.target.value })}
-                      disabled={!editing}
+                  <SelectInput
+                    label="Formulation"
+                    value={editedMedicine?.formulation}
+                    onChange={(e) => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    options={[
+                      { value: "tablet", label: "Tablet" },
+                      { value: "syrup", label: "Syrup" },
+                      { value: "injection", label: "Injection" },
+                      { value: "ointment", label: "Ointment" },
+                    ]}
                     />
-                  </label>
+                  <TextInput
+                    label="Price"
+                    type="number"
+                    value={editedMedicine?.price}
+                    onChange={e => setEditedMedicine({ ...editedMedicine, price: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    placeholder="Enter price"
+                  />
 
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Quantity</span>
-                    <input
-                      type="number"
-                      placeholder="Enter quantity"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.quantity}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, quantity: e.target.value })}
-                      disabled={!editing}
-                    />
-                  </label>
+                  <TextInput
+                    label="Quantity"
+                    type="number"
+                    value={editedMedicine?.quantity}
+                    disabled={true}
+                    editing={false}
+                  />
+                </div>
 
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Price</span>
-                    <input
-                      type="number"
-                      placeholder="Enter price"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.price}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, price: e.target.value })}
-                      disabled={!editing}
-                    />
-                  </label>
+                <div className="flex gap-2 text-2xl items-center font-semibold" ><PackageOpen /><span>Inventory</span></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInput
+                    label="Alert Threshold"
+                    value={editedMedicine?.alert_threshold}
+                    onChange={(e) => setEditedMedicine({ ...editedMedicine, alert_threshold: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    placeholder="Enter alert threshold"
+                  />
 
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
-                    <span className="label font-bold w-36">Location</span>
-                    <input
-                      type="text"
-                      placeholder="Enter location"
-                      className="disabled:cursor-text!"
-                      value={editedMedicine?.location}
-                      onChange={(e) => setEditedMedicine({ ...editedMedicine, location: e.target.value })}
-                      disabled={!editing}
-                    />
-                  </label>
+                  <SelectInput
+                    label="Provider"
+                    value={editedMedicine?.provider_id}
+                    onChange={(e) => setEditedMedicine({ ...editedMedicine, provider_id: e.target.value })}
+                    disabled={!editing}
+                    editing={editing}
+                    options={providers.map((p) => ({ value: p.id, label: p.name,}))}
+                  />
+
+                  <CheckboxInput
+                    label="Automatic Reorder"
+                    checked={editedMedicine?.automatic_reorder}
+                    onChange={e => setEditedMedicine({ ...editedMedicine, automatic_reorder: e.target.checked })}
+                    disabled={!editing}
+                    editing={editing}
+                  />
+
+                  <TextInput
+                    label="Reorder Quantity"
+                    type="number"
+                    value={editedMedicine?.reorder_quantity}
+                    onChange={e => setEditedMedicine({ ...editedMedicine, reorder_quantity: e.target.value })}
+                    disabled={!editing}
+                    editing={editing && editedMedicine?.automatic_reorder}
+                    placeholder="Enter reorder quantity"
+                  />
+                  
                 </div>
               </div>
             </div>
           </div>
         )}
+        {adding && (
+           <div className="flex flex-col bg-base-200 w-full max-w-2xl gap-4 mx-auto mt-16 shadow-2xl p-6 rounded-2xl">
+             <div className="flex justify-between items-center">
+               <h2 className="text-xl font-bold">Add New Medicine</h2>
+               <button className="btn btn-secondary btn-sm" onClick={goBack}>
+                 <X size={16} /> Cancel
+               </button>
+             </div>
+             <form
+               className="flex flex-col gap-4"
+               onSubmit={e => {
+                 e.preventDefault();
+                 handleCreateMedicine(editedMedicine);
+               }}
+             >
+               <label className="input w-full">
+                 <span className="label font-bold w-44">Name</span>
+                 <input
+                   type="text"
+                   placeholder="Enter medicine name"
+                   value={editedMedicine?.name}
+                   onChange={e => setEditedMedicine({ ...editedMedicine, name: e.target.value })}
+                   required
+                 />
+               </label>
+               <label className="input w-full">
+                 <span className="label font-bold w-44">Bar Code</span>
+                 <input
+                   type="text"
+                   placeholder="Enter bar code"
+                   value={editedMedicine?.bar_code}
+                   onChange={e => setEditedMedicine({ ...editedMedicine, bar_code: e.target.value })}
+                   required
+                 />
+               </label>
+               <label className="input w-full">
+                 <span className="label font-bold w-56">Dosage</span>
+                 <input
+                   type="number"
+                   placeholder="Enter dosage value"
+                   value={dosageValue}
+                   onChange={e => setDosageValue(e.target.value)}
+                   required
+                 />
+                 <select
+                   className="outline-0 w-fit p-0 rounded-l-none pl-2 pr-1 border-l h-7 border-black/10"
+                   value={dosageUnit}
+                   onChange={e => setDosageUnit(e.target.value)}
+                 >
+                   <option value="mg">mg</option>
+                   <option value="ml">ml</option>
+                   <option value="g">g</option>
+                 </select>
+               </label>
+               <label className="select w-full">
+                 <span className="label font-bold w-44">Formulation</span>
+                 <select
+                   value={editedMedicine?.formulation}
+                   onChange={e => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })}
+                 >
+                   <option value="tablet">Tablet</option>
+                   <option value="syrup">Syrup</option>
+                   <option value="injection">Injection</option>
+                   <option value="ointment">Ointment</option>
+                 </select>
+               </label>
+               <label className="input w-full">
+                 <span className="label font-bold w-44">Price</span>
+                 <input
+                   type="number"
+                   placeholder="Enter price"
+                   value={editedMedicine?.price}
+                   onChange={e => setEditedMedicine({ ...editedMedicine, price: e.target.value })}
+                   required
+                 />
+               </label>
+               <label className="input w-full">
+                 <span className="label font-bold w-44">Expiration Date</span>
+                 <input
+                   type="date"
+                   value={editedMedicine?.expiration_date}
+                   onChange={e => setEditedMedicine({ ...editedMedicine, expiration_date: e.target.value })}
+                   required
+                 />
+               </label>
+               {/* Add more fields as needed */}
+               <button className="btn btn-primary w-full mt-2" type="submit">
+                 <Check size={16} /> Add Medicine
+               </button>
+             </form>
+           </div>
+         )}
       </aside>
     </div>
   );

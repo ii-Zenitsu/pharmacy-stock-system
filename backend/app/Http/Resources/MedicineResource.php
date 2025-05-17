@@ -20,7 +20,6 @@ class MedicineResource extends JsonResource
             return [
                 'name' => $this->name,
                 'price' => $this->price,
-                'quantity' => $this->quantity,
             ];
         }
 
@@ -31,13 +30,11 @@ class MedicineResource extends JsonResource
                 'bar_code' => $this->bar_code,
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
-                'expiration_date' => $this->expiration_date,
-                'quantity' => $this->quantity,
                 'price' => $this->price,
-                'location' => $this->location,
                 'alert_threshold' => $this->alert_threshold,
                 'automatic_reorder' => $this->automatic_reorder,
                 'reorder_quantity' => $this->reorder_quantity,
+                'provider_id' => $this->provider_id,
                 'provider' => $this->provider,
                 // 'orders' => $this->orders,
                 'created_at' => $this->created_at,
@@ -51,10 +48,7 @@ class MedicineResource extends JsonResource
                 'bar_code' => $this->bar_code,
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
-                'expiration_date' => $this->expiration_date,
-                'quantity' => $this->quantity,
                 'price' => $this->price,
-                'location' => $this->location,
             ];
         }
 

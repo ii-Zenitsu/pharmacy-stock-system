@@ -10,7 +10,7 @@ class MedicineController extends Controller
 {
     public function index()
     {
-        $medicines = Medicine::all();
+        $medicines = Medicine::with('provider')->get();
         return MedicineResource::collection($medicines);
         
     }
@@ -18,7 +18,7 @@ class MedicineController extends Controller
 
     public function show($id)
     {
-        $medicine = Medicine::findOrFail($id);
+        $medicine = Medicine::with('provider')->findOrFail($id);
         return new MedicineResource($medicine);
     }
 
@@ -29,10 +29,7 @@ class MedicineController extends Controller
             'bar_code' => 'required|string|max:255|unique:medicines',
             'dosage' => 'nullable|string',
             'formulation' => 'nullable|string',
-            'expiration_date' => 'required|date',
-            'quantity' => 'required|integer',
             'price' => 'required|numeric',
-            'location' => 'nullable|string',
             'alert_threshold' => 'nullable|integer',
             'provider_id' => 'nullable|exists:providers,id',
             'automatic_reorder' => 'boolean',
@@ -51,10 +48,7 @@ class MedicineController extends Controller
             'bar_code' => 'nullable|string',
             'dosage' => 'nullable|string',
             'formulation' => 'nullable|string',
-            'expiration_date' => 'required|date',
-            'quantity' => 'required|integer',
             'price' => 'required|numeric',
-            'location' => 'nullable|string',
             'alert_threshold' => 'nullable|integer',
             'provider_id' => 'nullable|exists:providers,id',
             'automatic_reorder' => 'boolean',

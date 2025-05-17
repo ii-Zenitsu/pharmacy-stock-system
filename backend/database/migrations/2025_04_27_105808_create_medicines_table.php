@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('alert_threshold');
             $table->foreignId('provider_id')->constrained('providers')->onDelete('cascade')->index();
             $table->boolean('automatic_reorder')->default(false);
-            $table->unsignedInteger('reorder_quantity')->nullable();
+            $table->unsignedInteger('reorder_quantity')->default(15);
             $table->timestamps();
         });
     }

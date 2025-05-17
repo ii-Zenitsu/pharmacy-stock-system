@@ -22,10 +22,10 @@ class Medicine extends Model
         'automatic_reorder',
         'reorder_quantity'
     ];
-
-    protected $with = [
-        'provider',
-        // 'orders'
+    protected $casts = [
+        'automatic_reorder' => 'boolean',
+        'alert_threshold' => 'integer',
+        'reorder_quantity' => 'integer',
     ];
 
     public function provider()
