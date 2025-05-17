@@ -29,7 +29,7 @@ class MedicineFactory extends Factory
             'alert_threshold' => $this->faker->numberBetween(5, 20),
             'provider_id' => Provider::inRandomOrder()->first()->id,
             'automatic_reorder' => $this->faker->boolean(),
-            'reorder_quantity' => $this->faker->optional()->numberBetween(10, 100),
+            'reorder_quantity' => $this->faker->numberBetween(10, 100),
         ];
     }
 }

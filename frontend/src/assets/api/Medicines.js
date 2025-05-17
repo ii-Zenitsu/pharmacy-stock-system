@@ -10,7 +10,6 @@ export default class Medicines {
         data: res.data.data,
       };
     } catch (error) {
-      console.log(error);
       return Medicines.formatError(error, context);
     }
   }
