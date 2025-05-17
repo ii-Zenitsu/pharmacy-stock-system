@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { message, Popconfirm, Table, Spin } from "antd";
-import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, ArrowBigDownDash, ArrowBigDownDashIcon, ChevronDown, PackageOpen } from "lucide-react";
+import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, ArrowBigDownDash, ArrowBigDownDashIcon, ChevronDown, PackageOpen, CircleAlert, TriangleAlert } from "lucide-react";
 import Medicines from "../../assets/api/Medicines";
 import Providers from "../../assets/api/Providers";
 import Fuse from "fuse.js";
@@ -10,18 +10,6 @@ import { setProviders } from "../Redux/slices/ProviderSlice";
 import defaultPic from "../../assets/images/defaultPic.png";
 import { CheckboxInput, SelectInput, TextInput } from "../UI/MyInputs";
 
-const initialNewMedicineState = {
-  name: "",
-  bar_code: "",
-  dosage: "",
-  formulation: "",
-  price: 0,
-  alert_threshold: 0,
-  provider_id: null,
-  automatic_reorder: false,
-  reorder_quantity: 0,
-  image: null,
-};
 
 export default function MedicinesList() {
   const dispatch = useDispatch();
@@ -31,12 +19,11 @@ export default function MedicinesList() {
   const [editedMedicine, setEditedMedicine] = useState(null);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [newMedicine, setNewMedicine] = useState({ name: "", bar_code: "", dosage: "", formulation: "syrup", price: 0, alert_threshold: 0, provider_id: "", automatic_reorder: false, reorder_quantity: 1, image: null,});
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
-
-  const [dosageValue, setDosageValue] = useState("");
-  const [dosageUnit, setDosageUnit] = useState("mg");
 
   const [query, setQuery] = useState("");
   const medicinesFuse = new Fuse(medicines, { keys: ["name", "bar_code"], threshold: 0.3 });
@@ -81,30 +68,6 @@ export default function MedicinesList() {
     fetchMedicines();
   }, []);
 
-  useEffect(() => {
-    if (editedMedicine && editedMedicine.dosage) {
-      const parts = editedMedicine.dosage.split('-');
-      if (parts.length === 2) {
-        setDosageValue(parts[0]);
-        setDosageUnit(parts[1]);
-      } else {
-        setDosageValue(editedMedicine.dosage);
-        setDosageUnit("mg");
-      }
-    } else if (adding) {
-      setDosageValue("");
-      setDosageUnit("mg");
-    }
-  }, [editedMedicine, adding]);
-
-  // Effect to reconstruct dosage string when parts change
-  useEffect(() => {
-    if (editing || adding) {
-      const newDosageString = dosageValue ? `${dosageValue}-${dosageUnit}` : "";
-      setEditedMedicine(prev => ({ ...prev, dosage: newDosageString }));
-    }
-  }, [dosageValue, dosageUnit, editing, adding]);
-
   const handleDelete = async (id) => {
     try {
       const response = await Medicines.Delete(id);
@@ -123,24 +86,20 @@ export default function MedicinesList() {
   const handleCreateMedicine = async (values) => {
     try {
       if (!values) return;
-      if (!values.name || !values.bar_code || !values.expiration_date) {
-        messageApi.error("Name, Bar Code, and Expiration Date are required.");
+      if (values.dosage.startsWith("-")) {
+        setErrors({...errors, dosage: "Dosage is required."});
+        messageApi.error("Dosage is required.");
         return;
       }
+
       const response = await Medicines.Create(values);
       if (response.success) {
         dispatch(addMedicine(response.data));
         messageApi.success("Medicine added successfully");
         goBack();
       } else {
-        messageApi.error(response.message || "Failed to add medicine.");
-        if (response.errors) {
-          console.error("Validation errors:", response.errors);
-          const firstErrorKey = Object.keys(response.errors)[0];
-          if (firstErrorKey) {
-            messageApi.error(`${firstErrorKey}: ${response.errors[firstErrorKey][0]}`);
-          }
-        }
+        messageApi.error(response.message);
+        setErrors(response.errors);
       }
     } catch (error) {
       console.error("Create error:", error);
@@ -157,14 +116,19 @@ export default function MedicinesList() {
     setMedicine(null);
     setEditing(false);
     setAdding(false);
+    setNewMedicine({ name: "", bar_code: "", dosage: "", formulation: "syrup", price: 0, alert_threshold: 0, provider_id: "", automatic_reorder: false, reorder_quantity: 1, image: null });
     setEditedMedicine(null);
-    setDosageValue("");
-    setDosageUnit("mg");
+    setErrors({});
   };
 
   const editMedicine = async (values) => {
     try {
       if (!values) return;
+      if (values.dosage.startsWith("-")) {
+        setErrors({...errors, dosage: "Dosage is required."});
+        messageApi.error("Dosage is required.");
+        return;
+      }
 
       const response = await Medicines.Update(values.id, values);
       if (response.success) {
@@ -173,10 +137,25 @@ export default function MedicinesList() {
         goBack();
       } else {
         messageApi.error(response.message);
+        setErrors(response.errors);
       }
     } catch (error) {
       console.error("Update error:", error);
       messageApi.error(error.response?.data?.message || error.response?.data?.error || "Error updating medicine");
+    }
+  };
+
+  const getDosage = (med, value = "", unit = "") => {
+    let [valuePart, unitPart] = med.dosage.split("-");
+    if (value !== -1) valuePart = value;
+    if (unit) unitPart = unit;
+    return `${valuePart}-${unitPart}`;
+  };
+
+  const focusInput = (name) => {
+    const input = document.querySelector(`input[name="${name}"]`);
+    if (input) {
+      input.focus();
     }
   };
 
@@ -200,7 +179,7 @@ export default function MedicinesList() {
       dataIndex: "dosage",
       key: "dosage",
       align: "center",
-      render: (text) => text.replace("-", " "),
+      render: (text) => text?.replace("-", " "),
     },
     {
       title: "Formulation",
@@ -264,11 +243,8 @@ export default function MedicinesList() {
         </label>
         <button className="btn btn-primary btn-sm" onClick={() => {
           setMedicine(null);
-          setEditedMedicine({ ...initialNewMedicineState });
           setAdding(true);
           setEditing(true);
-          setDosageValue("");
-          setDosageUnit("mg");
         }}>
           <Plus size={16} /> Add
         </button>
@@ -301,8 +277,8 @@ export default function MedicinesList() {
           }}
         />
       </div>
-      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${(medicine || adding) ? "opacity-100 visible" : "opacity-0 invisible"}`} />
-      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-4 transform transition-transform duration-300 ease-in ${(medicine || adding) ? "translate-x-0" : "translate-x-full"}`}>
+      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${medicine ? "opacity-100 visible" : "opacity-0 invisible"}`} />
+      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-4 transform transition-transform duration-300 ease-in ${medicine ? "translate-x-0" : "translate-x-full"}`}>
          {medicine && (
           <div className="flex flex-col bg-base-200 w-full gap-4 mx-auto mt-16 shadow-2xl p-6 rounded-2xl">
             <div className="flex justify-between items-center">
@@ -332,7 +308,7 @@ export default function MedicinesList() {
                 </>
               ) : (
                 <>
-                  <button className="btn btn-secondary btn-sm w-22" onClick={() => { setEditing(false); setEditedMedicine(medicine); }}>
+                  <button className="btn btn-secondary btn-sm w-22" onClick={() => { setEditing(false); setEditedMedicine(medicine); setErrors({});}}>
                     <X size={16} /> Cancel
                   </button>
                   <Popconfirm
@@ -351,17 +327,26 @@ export default function MedicinesList() {
                 </>
               )}
             </div>
-            <div className="flex gap-6 mt-4">
-              <div className="w-1/3 p-3 h-fit border border-neutral/50 bg-base-300 rounded-lg">
-                <img
-                  src={medicine?.image || defaultPic}
-                  alt="Medicine"
-                  className="w-full h-auto rounded-lg shadow-lg"
-                />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-4">
+              <div className="flex flex-col sm:w-1/3 gap-1.5">
+
+                <div className="p-3 h-fit border border-neutral/50 bg-base-300 rounded-lg">
+                  <img
+                    src={medicine?.image || defaultPic}
+                    alt="Medicine"
+                    className="w-full h-[200px] rounded-lg shadow-lg"
+                    />
+                </div>
+                {errors && Object.entries(errors).map(([key, value]) => (
+                  <div key={key} onClick={() => focusInput(key)} className="btn btn-error h-fit justify-start btn-xs font-semibold">
+                    <TriangleAlert size={16} />
+                    {Array.isArray(value) ? value[0] : value}
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-col w-2/3 gap-6">
+              <div className="flex flex-col sm:w-2/3 gap-3 sm:gap-6">
                 <div className="flex gap-2 text-2xl items-center font-semibold" ><Info /><span>Basic information</span></div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <TextInput
                     label="Name"
                     value={editedMedicine?.name}
@@ -369,6 +354,8 @@ export default function MedicinesList() {
                     disabled={!editing}
                     editing={editing}
                     placeholder="Enter medicine name"
+                    name="name"
+                    className={errors?.name ? "input-error border-2" : ""}
                   />
                   <TextInput
                     label="Bar Code"
@@ -377,22 +364,25 @@ export default function MedicinesList() {
                     disabled={!editing}
                     editing={editing}
                     placeholder="Enter bar code"
+                    name="bar_code"
+                    className={errors?.bar_code ? "input-error border-2" : ""}
                   />
 
-                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"}`}>
+                  <label className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"} ${errors?.dosage ? "input-error border-2" : ""}`}>
                     <span className="label font-bold w-56">Dosage</span>
                     <input
                       type="number"
                       placeholder="Enter dosage value"
-                      className="disabled:cursor-text! w-full"
-                      value={dosageValue}
-                      onChange={(e) => setDosageValue(e.target.value)}
+                      className={`disabled:cursor-text! w-full`}
+                      value={editedMedicine?.dosage.split("-")[0]}
+                      onChange={(e) => setEditedMedicine({ ...editedMedicine, dosage: getDosage(editedMedicine, e.target.value, "") })}
                       disabled={!editing}
+                      name="dosage"
                     />
                     <select
                       className="outline-0 w-fit p-0 rounded-l-none pl-2 pr-1 border-l h-7 border-black/10 disabled:cursor-text! disabled:bg-transparent"
-                      value={dosageUnit}
-                      onChange={(e) => setDosageUnit(e.target.value)}
+                      value={editedMedicine?.dosage.split("-")[1] || "mg"}
+                      onChange={(e) => setEditedMedicine({ ...editedMedicine, dosage: getDosage(editedMedicine, -1, e.target.value || "mg") })}
                       disabled={!editing}
                     >
                       <option value="mg">mg</option>
@@ -407,6 +397,8 @@ export default function MedicinesList() {
                     onChange={(e) => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })}
                     disabled={!editing}
                     editing={editing}
+                    name="formulation"
+                    className={errors.formulation ? "input-error border-2" : ""}
                     options={[
                       { value: "tablet", label: "Tablet" },
                       { value: "syrup", label: "Syrup" },
@@ -422,6 +414,8 @@ export default function MedicinesList() {
                     disabled={!editing}
                     editing={editing}
                     placeholder="Enter price"
+                    name="price"
+                    className={errors?.price ? "input-error border-2" : ""}
                   />
 
                   <TextInput
@@ -434,7 +428,7 @@ export default function MedicinesList() {
                 </div>
 
                 <div className="flex gap-2 text-2xl items-center font-semibold" ><PackageOpen /><span>Inventory</span></div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <TextInput
                     label="Alert Threshold"
                     value={editedMedicine?.alert_threshold}
@@ -442,6 +436,8 @@ export default function MedicinesList() {
                     disabled={!editing}
                     editing={editing}
                     placeholder="Enter alert threshold"
+                    name="alert_threshold"
+                    className={errors?.alert_threshold ? "input-error border-2" : ""}
                   />
 
                   <SelectInput
@@ -450,7 +446,9 @@ export default function MedicinesList() {
                     onChange={(e) => setEditedMedicine({ ...editedMedicine, provider_id: e.target.value })}
                     disabled={!editing}
                     editing={editing}
-                    options={providers.map((p) => ({ value: p.id, label: p.name,}))}
+                    options={[{ value: "", label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
+                    name="provider_id"
+                    className={errors?.provider_id ? "input-error border-2" : ""}
                   />
 
                   <CheckboxInput
@@ -459,6 +457,8 @@ export default function MedicinesList() {
                     onChange={e => setEditedMedicine({ ...editedMedicine, automatic_reorder: e.target.checked })}
                     disabled={!editing}
                     editing={editing}
+                    name="automatic_reorder"
+                    className={errors?.automatic_reorder ? "input-error border-2" : ""}
                   />
 
                   <TextInput
@@ -469,6 +469,8 @@ export default function MedicinesList() {
                     disabled={!editing}
                     editing={editing && editedMedicine?.automatic_reorder}
                     placeholder="Enter reorder quantity"
+                    name="reorder_quantity"
+                    className={errors?.reorder_quantity ? "input-error border-2" : ""}
                   />
                   
                 </div>
@@ -476,99 +478,150 @@ export default function MedicinesList() {
             </div>
           </div>
         )}
-        {adding && (
-           <div className="flex flex-col bg-base-200 w-full max-w-2xl gap-4 mx-auto mt-16 shadow-2xl p-6 rounded-2xl">
-             <div className="flex justify-between items-center">
-               <h2 className="text-xl font-bold">Add New Medicine</h2>
-               <button className="btn btn-secondary btn-sm" onClick={goBack}>
-                 <X size={16} /> Cancel
-               </button>
-             </div>
-             <form
-               className="flex flex-col gap-4"
-               onSubmit={e => {
-                 e.preventDefault();
-                 handleCreateMedicine(editedMedicine);
-               }}
-             >
-               <label className="input w-full">
-                 <span className="label font-bold w-44">Name</span>
-                 <input
-                   type="text"
-                   placeholder="Enter medicine name"
-                   value={editedMedicine?.name}
-                   onChange={e => setEditedMedicine({ ...editedMedicine, name: e.target.value })}
-                   required
-                 />
-               </label>
-               <label className="input w-full">
-                 <span className="label font-bold w-44">Bar Code</span>
-                 <input
-                   type="text"
-                   placeholder="Enter bar code"
-                   value={editedMedicine?.bar_code}
-                   onChange={e => setEditedMedicine({ ...editedMedicine, bar_code: e.target.value })}
-                   required
-                 />
-               </label>
-               <label className="input w-full">
-                 <span className="label font-bold w-56">Dosage</span>
-                 <input
-                   type="number"
-                   placeholder="Enter dosage value"
-                   value={dosageValue}
-                   onChange={e => setDosageValue(e.target.value)}
-                   required
-                 />
-                 <select
-                   className="outline-0 w-fit p-0 rounded-l-none pl-2 pr-1 border-l h-7 border-black/10"
-                   value={dosageUnit}
-                   onChange={e => setDosageUnit(e.target.value)}
-                 >
-                   <option value="mg">mg</option>
-                   <option value="ml">ml</option>
-                   <option value="g">g</option>
-                 </select>
-               </label>
-               <label className="select w-full">
-                 <span className="label font-bold w-44">Formulation</span>
-                 <select
-                   value={editedMedicine?.formulation}
-                   onChange={e => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })}
-                 >
-                   <option value="tablet">Tablet</option>
-                   <option value="syrup">Syrup</option>
-                   <option value="injection">Injection</option>
-                   <option value="ointment">Ointment</option>
-                 </select>
-               </label>
-               <label className="input w-full">
-                 <span className="label font-bold w-44">Price</span>
-                 <input
-                   type="number"
-                   placeholder="Enter price"
-                   value={editedMedicine?.price}
-                   onChange={e => setEditedMedicine({ ...editedMedicine, price: e.target.value })}
-                   required
-                 />
-               </label>
-               <label className="input w-full">
-                 <span className="label font-bold w-44">Expiration Date</span>
-                 <input
-                   type="date"
-                   value={editedMedicine?.expiration_date}
-                   onChange={e => setEditedMedicine({ ...editedMedicine, expiration_date: e.target.value })}
-                   required
-                 />
-               </label>
-               {/* Add more fields as needed */}
-               <button className="btn btn-primary w-full mt-2" type="submit">
-                 <Check size={16} /> Add Medicine
-               </button>
-             </form>
-           </div>
-         )}
       </aside>
+      
+      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${adding ? "opacity-100 visible" : "opacity-0 invisible"}`} />
+      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-4 transform transition-transform duration-300 ease-in ${adding ? "translate-x-0" : "translate-x-full"}`}>
+        {adding && (
+          <div className="flex flex-col bg-base-200 w-full gap-4 mx-auto mt-16 shadow-2xl p-6 rounded-2xl">
+            <div className="flex justify-between items-center">
+              <button className="btn btn-secondary btn-sm" onClick={goBack}>
+                <ArrowLeft size={16} /> Back
+              </button>
+              <Popconfirm
+                placement="bottomRight"
+                title="Add medicine?"
+                description="Are you sure you want to add this medicine?"
+                okText="Yes"
+                cancelText="No"
+                icon={<CircleHelp size={16} className="m-1" />}
+                onConfirm={() => handleCreateMedicine(newMedicine)}
+              >
+                <button className="btn btn-primary btn-sm w-22">
+                  <Check size={16} /> Save
+                </button>
+              </Popconfirm>
+            </div>
+            <div className="flex flex-col sm:w-full gap-3 sm:gap-6 mt-4">
+              <div className="flex gap-2 text-2xl items-center font-semibold" ><Info /><span>Basic information</span></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TextInput
+                  label="Name"
+                  value={newMedicine.name}
+                  onChange={e => setNewMedicine({ ...newMedicine, name: e.target.value })}
+                  placeholder="Enter medicine name"
+                  name="name"
+                  className={errors?.name ? "input-error border-2" : ""}
+                  editing={true}
+                />
+                <TextInput
+                  label="Bar Code"
+                  value={newMedicine.bar_code}
+                  onChange={e => setNewMedicine({ ...newMedicine, bar_code: e.target.value })}
+                  placeholder="Enter bar code"
+                  name="bar_code"
+                  className={errors?.bar_code ? "input-error border-2" : ""}
+                  editing={true}
+                />
+                <label className={`input w-full transition-colors duration-300 ${errors?.dosage ? "input-error border-2" : ""}`}>
+                  <span className="label font-bold w-56">Dosage</span>
+                  <input
+                    type="number"
+                    placeholder="Enter dosage value"
+                    className="disabled:cursor-text! w-full"
+                    value={newMedicine?.dosage.split("-")[0]}
+                    onChange={e => setNewMedicine({ ...newMedicine, dosage: getDosage(newMedicine, e.target.value, "") })}
+                    disabled={false}
+                    name="dosage"
+                  />
+                  <select
+                    className="outline-0 w-fit p-0 rounded-l-none pl-2 pr-1 border-l h-7 border-black/10"
+                    value={newMedicine?.dosage.split("-")[1] || "mg"}
+                    onChange={e => setNewMedicine({ ...newMedicine, dosage: getDosage(newMedicine, -1, e.target.value || "mg") })}
+                    disabled={false}
+                  >
+                    <option value="mg">mg</option>
+                    <option value="ml">ml</option>
+                    <option value="g">g</option>
+                  </select>
+                </label>
+                <SelectInput
+                  label="Formulation"
+                  value={newMedicine.formulation}
+                  onChange={e => setNewMedicine({ ...newMedicine, formulation: e.target.value })}
+                  name="formulation"
+                  className={errors?.formulation ? "input-error border-2" : ""}
+                  editing={true}
+                  options={[
+                    { value: "tablet", label: "Tablet" },
+                    { value: "syrup", label: "Syrup" },
+                    { value: "injection", label: "Injection" },
+                    { value: "ointment", label: "Ointment" },
+                  ]}
+                />
+                <TextInput
+                  label="Price"
+                  type="number"
+                  value={newMedicine.price}
+                  onChange={e => setNewMedicine({ ...newMedicine, price: e.target.value })}
+                  placeholder="Enter price"
+                  name="price"
+                  className={errors?.price ? "input-error border-2" : ""}
+                  editing={true}
+                />
+              </div>
+              <div className="flex gap-2 text-2xl items-center font-semibold" ><PackageOpen /><span>Inventory</span></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TextInput
+                  label="Alert Threshold"
+                  value={newMedicine.alert_threshold}
+                  onChange={e => setNewMedicine({ ...newMedicine, alert_threshold: e.target.value })}
+                  placeholder="Enter alert threshold"
+                  name="alert_threshold"
+                  className={errors?.alert_threshold ? "input-error border-2" : ""}
+                  editing={true}
+                />
+                <SelectInput
+                  label="Provider"
+                  value={newMedicine.provider_id}
+                  onChange={e => setNewMedicine({ ...newMedicine, provider_id: e.target.value })}
+                  options={[{ value: "", label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
+                  name="provider_id"
+                  className={errors?.provider_id ? "input-error border-2" : ""}
+                  editing={true}
+                />
+                <CheckboxInput
+                  label="Automatic Reorder"
+                  checked={newMedicine.automatic_reorder}
+                  onChange={e => setNewMedicine({ ...newMedicine, automatic_reorder: e.target.checked })}
+                  name="automatic_reorder"
+                  className={errors?.automatic_reorder ? "input-error border-2" : ""}
+                  editing={true}
+                />
+                <TextInput
+                  label="Reorder Quantity"
+                  type="number"
+                  value={newMedicine.reorder_quantity}
+                  onChange={e => setNewMedicine({ ...newMedicine, reorder_quantity: e.target.value })}
+                  placeholder="Enter reorder quantity"
+                  name="reorder_quantity"
+                  className={errors?.reorder_quantity ? "input-error border-2" : ""}
+                  editing={newMedicine.automatic_reorder}
+                  disabled={!newMedicine.automatic_reorder}
+                />
+              </div>
+              {/* Error display */}
+              {errors && Object.entries(errors).map(([key, value]) => (
+                <div key={key} onClick={() => focusInput(key)} className="btn btn-error h-fit justify-start btn-xs font-semibold">
+                  <TriangleAlert size={16} />
+                  {Array.isArray(value) ? value[0] : value}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+      
     </div>
   );
 }
