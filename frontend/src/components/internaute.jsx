@@ -25,7 +25,6 @@ const internaute = () => {
 
   return (
     <div className="min-h-screen bg-[#f8faf5]">
-      {/* Header */}
       <header className="bg-white border-b border-[#6ab04c]/20 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,9 +67,8 @@ const internaute = () => {
         </div>
       </header>
 
-      {/* Sidebar and Main Content */}
       <div className="flex">
-        {/* Sidebar */}
+        
         <aside className="w-64 bg-white h-[calc(100vh-60px)] border-r border-[#6ab04c]/20 p-4">
           <nav>
             <ul className="space-y-1">
@@ -263,7 +261,6 @@ const internaute = () => {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -289,7 +286,6 @@ const internaute = () => {
             </button>
           </div>
 
-          {/* Pharmacy Hours Banner */}
           <div className="bg-[#e9eef2] p-6 rounded-xl mb-6">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex flex-col md:flex-row items-center gap-4 mb-4 md:mb-0">
@@ -313,7 +309,6 @@ const internaute = () => {
             </div>
           </div>
 
-          {/* Medications Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {medications.map((medication) => (
               <div
