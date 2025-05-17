@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Provider>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Location>
  */
-class ProviderFactory extends Factory
+class LocationFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,9 +17,8 @@ class ProviderFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
+            'name' => $this->faker->unique()->word(), // e.g., 'Shelf A1', 'Fridge 2'
+            'description' => $this->faker->optional()->sentence(),
         ];
     }
 }

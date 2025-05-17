@@ -15,6 +15,7 @@ class AuthController extends Controller
         $request->validated();
         $user = User::create($request->all());
     
+        $user->sendEmailVerificationNotification();
         $token = $user->createToken('auth_token');
         $expires = now()->addDays(30)->diffInDays(now(), true);
         return response()->json([

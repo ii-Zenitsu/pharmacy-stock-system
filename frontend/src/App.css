@@ -1,9 +1,30 @@
 @layer theme, base, antd, components, utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+input[type=number] {
+  appearance: textfield;
+}
+.input:focus-within, .select:focus-within{
+  outline: none;
+}
+
+
+
 @plugin "daisyui" {
   themes: forest --default;
 }
-
 @plugin "daisyui/theme" {
   name: "forest";
   default: true;
@@ -38,22 +59,3 @@
   --depth: 1;
   --noise: 0;
 }
-
-
-
-
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-
-input[type=number] {
-  appearance: textfield;
-}
-.input:focus-within, .select:focus-within{
-  outline: none;
-}
-

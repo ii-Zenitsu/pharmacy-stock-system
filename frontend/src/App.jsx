@@ -1,19 +1,22 @@
-import { BrowserRouter,Route,Routes } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import { StyleProvider } from '@ant-design/cssinjs';
 import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect } from 'react'
-import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
-import SignTabs from './components/login/Signup'
-import Auth from './assets/api/auth/Auth'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
+import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
+
+import Auth from './assets/api/Auth'
+import Menu from './components/Menu';
 import Header from './components/Header'
-import dashboard from './components/admin/dashboard'
-import home from './components/admin/Header'
-import medicines from './components/admin/medicines'
-import internaute from './components/internaute';
+import SignTabs from './components/login/Signup'
+import UsersList from './components/users/UsersList';
+import StockList from './components/stock/StockList';
+import MedicinesList from './components/medicines/MedicinesList';
+import LocationsList from './components/locations/LocationList';
+import ProvidersList from './components/providers/ProviderList';
 
 function App() {
   const dispatch = useDispatch();
@@ -23,7 +26,6 @@ function App() {
     Auth.CheckAuth(dispatch)
       .then(result => {
         setStatus(result);
-        console.log(result)
       });
     
   }, [dispatch]);
@@ -46,6 +48,10 @@ function App() {
                 colorBgElevated: "#d5f796"
               },
               components: {
+                Table: {
+                  rowHoverBg: "#d5f796",
+                  headerBg: "#e1eebc",
+                },
                 Button: {
                   colorTextLightSolid: "rgb(0,0,0)"
                 },
@@ -62,28 +68,40 @@ function App() {
             }}
           >
             <Routes>
-             
-              <Route path='/' element={<Header/>}>
-                <Route index element={<h1 >Home</h1>} />
-              
+              <Route path='/' element={<Header />}>
+                <Route index element={<h1>Home</h1>} />
                 <Route element={<LoggedOut />}>
-                  <Route index path="sign" element={<SignTabs />} />
+                  <Route path="sign" element={<SignTabs />} />
                 </Route>
 
-                {/* redirect user to default page */}
-                {/* <Route index element={<RedirectByRole />} /> */}
-
-                  {/* admin routes */}
-                    <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                      <Route path="./components/admin/dashboard" element={<h1>Dashboard</h1>} />
-                      <Route path="users" element={<h1>Users</h1>} />
-                      <Route path="./components/admin/medicines" element={<h1>Medicines</h1>} />
-                    </Route>
-                    
-                  {/* employe routes */}
-                    <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
-                      <Route index path="medicines" element={<h1>Medicines</h1>} />
-                    </Route>
+                <Route path='menu' element={<Menu />}>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  {/* Admin routes */}
+                  <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
+                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
+                    <Route path="medicines" element={<MedicinesList />} />
+                    <Route path="stock" element={<StockList />} />
+                    <Route path="orders" element={<h1>Orders</h1>} />
+                    <Route path="providers" element={<ProvidersList />} />
+                    <Route path="locations" element={<LocationsList />} />
+                    <Route path="users" element={<UsersList />} />
+                    <Route path="logs" element={<h1>Logs</h1>} />
+                  </Route>
+                  {/* Employee routes */}
+                  <Route element={<ProtectedRoute requiredRoles={["employe"]} />}>
+                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
+                    <Route path="medicines" element={<MedicinesList />} />
+                    <Route path="stock" element={<h1>Stock</h1>} />
+                    <Route path="locations" element={<h1>Locations</h1>} />
+                  </Route>
+                </Route>
+                
+                {/* Routes that DO NOT use the Menu layout can be outside */}
+                {/* For example, if medicines list was accessible without this specific sidebar for some roles:
+                <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
+                    <Route path="medicines-standalone" element={<MedicinesList />} />
+                </Route>
+                */}
               </Route>
             </Routes>
           </ConfigProvider>

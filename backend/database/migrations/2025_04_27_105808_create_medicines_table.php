@@ -17,14 +17,11 @@ return new class extends Migration
             $table->string('bar_code')->unique()->index();
             $table->string('dosage');
             $table->enum('formulation', ['tablet', 'syrup', 'injection', 'ointment']);
-            $table->date('expiration_date');
-            $table->unsignedInteger('quantity');
             $table->decimal('price', 8, 2);
-            $table->string('location');
             $table->unsignedInteger('alert_threshold');
             $table->foreignId('provider_id')->constrained('providers')->onDelete('cascade')->index();
             $table->boolean('automatic_reorder')->default(false);
-            $table->unsignedInteger('reorder_quantity')->nullable();
+            $table->unsignedInteger('reorder_quantity')->default(15);
             $table->timestamps();
         });
     }

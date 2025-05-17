@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 
-
 class UserController extends Controller
 {
     /**
@@ -15,8 +14,10 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return response()->json($users, 201);
-        
+        return response()->json([
+            'success' => true,
+            'data' => $users,
+        ], 201);
     }
 
     /**
@@ -42,7 +43,10 @@ class UserController extends Controller
             'role' => $request->role,
         ]);
 
-        return response()->json($user, 201);
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+        ], 201);
     }
 
     /**
@@ -50,14 +54,17 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::with('role')->findOrFail($id);    
+        $user = User::findOrFail($id);    
         return response()->json([
-            'id' => $user->id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'birth_date' => $user->birth_date,
-            'email' => $user->email,
-            'role' => $user->role,
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'birth_date' => $user->birth_date,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
         ]);
     }
 
@@ -89,7 +96,10 @@ class UserController extends Controller
             $user->save();
         }
 
-        return response()->json($user);
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+        ]);
     }
 
     /**
@@ -100,7 +110,9 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return response()->json(['message' => 'User deleted successfully']);
-        
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully',
+        ]);
     }
 }

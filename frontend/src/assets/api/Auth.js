@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
-import { axios, setBearerToken } from "../axios";
+import { axios, setBearerToken } from "./axios";
 import Cookies from "js-cookie";
-import { login, logout } from '../../../components/Redux/slices/AuthSlice'
+import { login, logout, setLoading } from '../../components/Redux/slices/AuthSlice'
 
 export default class Auth {
   static async CheckAuth(dispatch) {
@@ -16,17 +16,22 @@ export default class Auth {
       setBearerToken(tokenFromCookie);
       const res = await this.GetUser();
       
-      if (res.success) {
+      if (res.success && res.user) {
         dispatch(login({
           user: res.user,
           token: tokenFromCookie
         }));
         return { initialized: true, authenticated: true };
+      } else {
+        if (res.status === 401 || res.status === 403) {
+          dispatch(logout());
+          Cookies.remove('token');
+          return { initialized: true, authenticated: false, error: res.message || 'Authentication token is invalid.' };
+        } else {
+          dispatch(setLoading(false));
+          return { initialized: true, authenticated: false, error: res.message || 'Server is unreachable or encountered an error.' };
+        }
       }
-      
-      dispatch(logout());
-      Cookies.remove('token');
-      return { initialized: true, authenticated: false };
       
     } catch (error) {
       console.error('Failed to load user:', error);
@@ -35,12 +40,12 @@ export default class Auth {
       return { 
         initialized: true, 
         authenticated: false, 
-        error: error.message 
+        error: error.message || 'An unexpected error occurred during authentication check.'
       };
     }
   };
 
-  static async Register(info) {
+  static async Register(info, save = true) {
     const defaultError = {
       success: false,
       message: "Server Error",
@@ -49,11 +54,11 @@ export default class Auth {
 
     try {
       const res = await axios.post("register", info);
-      
-      const { token, expires } = res.data;
-      
-      setBearerToken(token);
-      Cookies.set("token", token, { expires, secure: true });
+      if (save) {
+        const { token, expires } = res.data;
+        setBearerToken(token);
+        Cookies.set("token", token, { expires, secure: true });
+      }
       return res.data;
 
     } catch (error) {
