@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+
+import Medicines from "../../assets/api/Medicines";
+import { fetchInitialData } from "../Redux/fetchData";
+import { deleteMedicine, updateMedicine, addMedicine } from "../Redux/slices/MedicineSlice";
+
 import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert } from "lucide-react";
-import Medicines from "../../assets/api/Medicines";
-import Providers from "../../assets/api/Providers";
 import Fuse from "fuse.js";
-import { setMedicines, deleteMedicine, updateMedicine, addMedicine } from "../Redux/slices/MedicineSlice";
-import { setProviders } from "../Redux/slices/ProviderSlice";
 import defaultPic from "../../assets/images/defaultPic.png";
 import { CheckboxInput, FileInput, SelectInput, TextInput } from "../UI/MyInputs";
 
@@ -31,30 +32,6 @@ export default function MedicinesList() {
   const items = query ? medicinesFuse.search(query).map((r) => r.item) : medicines;
 
 
-  const fetchMedicines = async () => {
-    setLoading(true);
-    try {
-      const response = await Medicines.GetAll();
-      if (response.success) {
-        dispatch(setMedicines(response.data));
-        // console.log("Medicines :", response.data);
-        const providersResponse = await Providers.GetAll();
-        if (providersResponse.success) {
-          dispatch(setProviders(providersResponse.data));
-        } else {
-          messageApi.error(providersResponse.message);
-        }
-      } else {
-        messageApi.error(response.message);
-      }
-    } catch (error) {
-      console.log("Error fetching Medicines:", error);
-      messageApi.error("Failed to load Medicines. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (medicine || adding) {
       document.body.style.overflow = 'hidden';
@@ -67,7 +44,13 @@ export default function MedicinesList() {
   }, [medicine, adding]);
 
   useEffect(() => {
-    setLoading(!medicines.length);
+    const fetchData = async () => {
+    if (!medicines.length) {
+      await fetchInitialData(dispatch);
+    }
+    setLoading(false);
+  };
+  fetchData();
   }, []);
 
   const handleDelete = async (id) => {

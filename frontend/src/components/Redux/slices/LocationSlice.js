@@ -6,7 +6,7 @@ const initialState = {
   error: null,
 };
 
-const locationsSlice = createSlice({
+const locationSlice = createSlice({
   name: 'locations',
   initialState,
   reducers: {
@@ -34,7 +34,7 @@ const locationsSlice = createSlice({
   },
 });
 
-export const { setLocations, addLocation, updateLocation, deleteLocation, setLoading, setError } = locationsSlice.actions;
-const LocationsReducer = locationsSlice.reducer;
+export const { setLocations, addLocation, updateLocation, deleteLocation, setLoading, setError } = locationSlice.actions;
+const LocationsReducer = locationSlice.reducer;
 
 export default LocationsReducer;
