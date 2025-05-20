@@ -17,6 +17,7 @@ class Medicine extends Model
         'dosage',
         'formulation',
         'price',
+        'image',
         'alert_threshold',
         'provider_id',
         'automatic_reorder',

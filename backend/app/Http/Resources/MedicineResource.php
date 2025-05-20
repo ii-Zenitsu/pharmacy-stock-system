@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class MedicineResource extends JsonResource
 {
@@ -31,6 +32,7 @@ class MedicineResource extends JsonResource
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
                 'price' => $this->price,
+                'image' => $this->image ? url(Storage::url($this->image)) : null,
                 'alert_threshold' => $this->alert_threshold,
                 'automatic_reorder' => $this->automatic_reorder,
                 'reorder_quantity' => $this->reorder_quantity,

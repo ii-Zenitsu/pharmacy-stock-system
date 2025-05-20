@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('dosage');
             $table->enum('formulation', ['tablet', 'syrup', 'injection', 'ointment']);
             $table->decimal('price', 8, 2);
+            $table->string('image')->nullable();
             $table->unsignedInteger('alert_threshold');
             $table->foreignId('provider_id')->nullable()->constrained('providers')->onDelete('set null')->index();
             $table->boolean('automatic_reorder')->default(true);

@@ -49,7 +49,7 @@ export default class Medicines {
   }
 
   static async Update(id, info) {
-    return await this.request('put', `medicines/${id}`, info, "Updating medicine");
+    return await this.request('post', `medicines/${id}`, info, "Updating medicine");
   }
 
   static async Delete(id) {
