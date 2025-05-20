@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -13,6 +14,9 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
+  const { medicines } = useSelector((state) => state.medicines);
+  const { providers } = useSelector((state) => state.providers);
+
   const [stats, setStats] = useState({
     medicines: 0,
     suppliers: 0,
@@ -22,69 +26,34 @@ const Dashboard = () => {
   const [recentSales, setRecentSales] = useState([]);
   const [lowStockList, setLowStockList] = useState([]);
   const [salesChart, setSalesChart] = useState({ labels: [], data: [] });
-  const [userRole, setUserRole] = useState("guest");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        // Optionally, fetch user role from backend
-        let role = "guest";
-        try {
-          const userRes = await fetch("/api/user");
-          if (userRes.ok) {
-            const user = await userRes.json();
-            role = user.role || "guest";
-          }
-        } catch {}
-        setUserRole(role);
-
-        // Fetch dashboard data
-        const [
-          medRes,
-          supRes,
-          salesRes,
-          lowStockRes,
-          recentSalesRes,
-          lowStockListRes,
-          salesChartRes,
-        ] = await Promise.all([
-          fetch("/api/medicines/count"),
-          fetch("/api/suppliers/count"),
-          fetch("/api/sales/count"),
-          fetch("/api/medicines/lowstock/count"),
-          fetch("/api/sales/recent"),
-          fetch("/api/medicines/lowstock"),
-          fetch("/api/sales/chart"),
-        ]);
-        const medicines = await medRes.json();
-        const suppliers = await supRes.json();
-        const sales = await salesRes.json();
-        const lowStock = await lowStockRes.json();
-        const recentSales = await recentSalesRes.json();
-        const lowStockList = await lowStockListRes.json();
-        const salesChart = await salesChartRes.json();
-
-        setStats({
-          medicines: medicines.count,
-          suppliers: suppliers.count,
-          sales: sales.count,
-          lowStock: lowStock.count,
-        });
-        setRecentSales(recentSales.sales || []);
-        setLowStockList(lowStockList.medicines || []);
-        setSalesChart({
-          labels: salesChart.labels || [],
-          data: salesChart.data || [],
-        });
-      } catch (err) {
-        // Handle error
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, []);
+    setLoading(true);
+    if (!medicines || !providers) {
+      setLoading(false);
+      return;
+    }
+    // Low stock calculation
+    const lowStock = medicines.filter(
+      (med) =>
+        typeof med.quantity !== "undefined" &&
+        typeof med.alert_threshold !== "undefined" &&
+        med.quantity <= med.alert_threshold
+    );
+    // TODO: Replace with actual sales data from Redux if available
+    const sales = [];
+    setStats({
+      medicines: medicines.length,
+      suppliers: providers.length,
+      sales: sales.length,
+      lowStock: lowStock.length,
+    });
+    setLowStockList(lowStock);
+    setRecentSales([]); // Replace with actual sales data if available
+    setSalesChart({ labels: [], data: [] }); // Replace with actual chart data if available
+    setLoading(false);
+  }, [medicines, providers]);
 
   if (loading) return <div>Loading dashboard...</div>;
 
@@ -133,7 +102,6 @@ const Dashboard = () => {
             {lowStockList.map((med) => (
               <li key={med.id || med.name} style={{ marginBottom: "0.5rem" }}>
                 <strong>{med.name}</strong>
-                {/* Only show fields if present */}
                 {med.bar_code && <span> | Barcode: {med.bar_code}</span>}
                 {med.dosage && <span> | Dosage: {med.dosage}</span>}
                 {med.formulation && <span> | Formulation: {med.formulation}</span>}
