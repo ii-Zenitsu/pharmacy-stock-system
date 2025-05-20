@@ -1,16 +1,18 @@
 import { isAxiosError } from "axios";
 import { axios } from "./axios";
 
-export default class Medicines {
+export default class Locations {
   static async request(method, url, data = null, context = "Request") {
     try {
       const res = await axios({ method, url, data });
       return {
         success: true,
         data: res.data.data,
+        message: res.data.message,
       };
     } catch (error) {
-      return Medicines.formatError(error, context);
+      console.log(error);
+      return Locations.formatError(error, context);
     }
   }
 
@@ -37,22 +39,22 @@ export default class Medicines {
   }
 
   static async GetAll() {
-    return await this.request('get', 'medicines', null, "Getting all medicines");
+    return await this.request('get', 'locations', null, "Getting all locations");
   }
 
   static async GetOne(id) {
-    return await this.request('get', `medicines/${id}`, null, "Fetching medicine details");
+    return await this.request('get', `locations/${id}`, null, "Fetching location details");
   }
 
   static async Create(info) {
-    return await this.request('post', 'medicines', info, "Creating medicine");
+    return await this.request('post', 'locations', info, "Creating location");
   }
 
   static async Update(id, info) {
-    return await this.request('post', `medicines/${id}`, info, "Updating medicine");
+    return await this.request('put', `locations/${id}`, info, "Updating location");
   }
 
   static async Delete(id) {
-    return await this.request('delete', `medicines/${id}`, null, "Deleting medicine");
+    return await this.request('delete', `locations/${id}`, null, "Deleting location");
   }
 }

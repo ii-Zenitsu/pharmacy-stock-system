@@ -20,7 +20,7 @@ class MedicineFactory extends Factory
         return [
             'name' => $this->faker->word(),
             'bar_code' => $this->faker->unique()->ean13(), // Generates a unique 13-digit barcode
-            'dosage' => $this->faker->randomElement(['500mg', '250mg', '100mg', '5ml']),
+            'dosage' => $this->faker->randomElement(['500-mg', '250-mg', '100-mg', '5-ml']),
             'formulation' => $this->faker->randomElement(['tablet', 'syrup', 'injection', 'ointment']),
             // 'expiration_date' => $this->faker->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
             // 'quantity' => $this->faker->numberBetween(10, 100),
@@ -29,7 +29,7 @@ class MedicineFactory extends Factory
             'alert_threshold' => $this->faker->numberBetween(5, 20),
             'provider_id' => Provider::inRandomOrder()->first()->id,
             'automatic_reorder' => $this->faker->boolean(),
-            'reorder_quantity' => $this->faker->optional()->numberBetween(10, 100),
+            'reorder_quantity' => $this->faker->numberBetween(10, 100),
         ];
     }
 }
