@@ -4,7 +4,7 @@ import { StyleProvider } from '@ant-design/cssinjs';
 import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
 import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
 
@@ -22,6 +22,7 @@ import { fetchInitialData } from './components/Redux/fetchData';
 
 function App() {
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
     dispatch(setLoading(true));
@@ -30,7 +31,7 @@ function App() {
         setStatus(result);
       });
 
-    fetchInitialData(dispatch);
+    fetchInitialData(dispatch, user);
   }, [dispatch]);
 
   return (
@@ -79,32 +80,21 @@ function App() {
 
                 <Route path='menu' element={<Menu />}>
                   <Route index element={<Navigate to="dashboard" replace />} />
-                  {/* Admin routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
+                  {/* Admin and Employee routes */}
+                  <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="medicines" element={<MedicinesList />} />
                     <Route path="stock" element={<StockList />} />
+                    <Route path="locations" element={<LocationsList />} />
+                  </Route>
+                  {/* Admin routes */}
+                  <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
                     <Route path="orders" element={<h1>Orders</h1>} />
                     <Route path="providers" element={<ProvidersList />} />
-                    <Route path="locations" element={<LocationsList />} />
                     <Route path="users" element={<UsersList />} />
                     <Route path="logs" element={<h1>Logs</h1>} />
                   </Route>
-                  {/* Employee routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["employe"]} />}>
-                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
-                    <Route path="medicines" element={<MedicinesList />} />
-                    <Route path="stock" element={<h1>Stock</h1>} />
-                    <Route path="locations" element={<h1>Locations</h1>} />
-                  </Route>
                 </Route>
-                
-                {/* Routes that DO NOT use the Menu layout can be outside */}
-                {/* For example, if medicines list was accessible without this specific sidebar for some roles:
-                <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
-                    <Route path="medicines-standalone" element={<MedicinesList />} />
-                </Route>
-                */}
               </Route>
             </Routes>
           </ConfigProvider>
