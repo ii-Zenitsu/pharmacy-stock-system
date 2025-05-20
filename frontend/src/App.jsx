@@ -83,7 +83,7 @@ function App() {
                   <Route index element={<Navigate to="dashboard" replace />} />
                   {/* Admin routes */}
                   <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
+                    <Route path="dashboard" element={<Dashboard />} />
                     <Route path="medicines" element={<MedicinesList />} />
                     <Route path="stock" element={<StockList />} />
                     <Route path="orders" element={<h1>Orders</h1>} />
