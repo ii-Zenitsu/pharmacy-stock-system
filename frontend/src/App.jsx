@@ -18,6 +18,7 @@ import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';
+import { fetchInitialData } from './components/Redux/fetchData';
 
 function App() {
   const dispatch = useDispatch();
@@ -28,7 +29,8 @@ function App() {
       .then(result => {
         setStatus(result);
       });
-    
+
+    fetchInitialData(dispatch);
   }, [dispatch]);
 
   return (

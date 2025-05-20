@@ -67,7 +67,7 @@ export default function MedicinesList() {
   }, [medicine, adding]);
 
   useEffect(() => {
-    fetchMedicines();
+    setLoading(!medicines.length);
   }, []);
 
   const handleDelete = async (id) => {
