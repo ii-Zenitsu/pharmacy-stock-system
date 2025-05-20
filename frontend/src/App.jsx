@@ -9,14 +9,13 @@ import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
 import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
 
 import Auth from './assets/api/Auth'
+import Home from './components/Home';
 import Menu from './components/Menu';
 import Header from './components/Header'
 import SignTabs from './components/login/Signup'
 import UsersList from './components/users/UsersList';
 import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
-import Home from './components/Home';
-import Menu from './components/Menu';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';

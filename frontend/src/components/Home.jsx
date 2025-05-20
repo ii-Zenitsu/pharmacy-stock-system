@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const medicines = useSelector((state) => state.medicines?.medicines || []);
+  const { medicines } = useSelector((state) => state.medicines);
   const [isOpen, setIsOpen] = useState(true);
   const [currentDay, setCurrentDay] = useState("");
 
