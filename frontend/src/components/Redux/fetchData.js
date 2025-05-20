@@ -6,6 +6,7 @@ import { setProviders } from "./slices/ProviderSlice";
 
 
 export const fetchInitialData = async (dispatch, user) => {
+  console.log(user);
 
   try {
     const res = await Medicines.GetAll();

@@ -12,6 +12,7 @@ import { TextInput } from "../UI/MyInputs";
 
 export default function LocationList() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { locations } = useSelector((state) => state.locations);
   const [location, setLocation] = useState(null);
   const [editedLocation, setEditedLocation] = useState(null);
@@ -41,7 +42,7 @@ export default function LocationList() {
   useEffect(() => {
     const fetchData = async () => {
       if (!locations.length) {
-        await fetchInitialData(dispatch); 
+        await fetchInitialData(dispatch, user);
       }
       setLoading(false);
     };

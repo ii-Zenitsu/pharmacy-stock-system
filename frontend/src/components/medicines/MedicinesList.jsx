@@ -14,6 +14,7 @@ import { CheckboxInput, FileInput, SelectInput, TextInput } from "../UI/MyInputs
 
 export default function MedicinesList() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
   const [medicine, setMedicine] = useState(null);
@@ -46,7 +47,7 @@ export default function MedicinesList() {
   useEffect(() => {
     const fetchData = async () => {
     if (!medicines.length) {
-      await fetchInitialData(dispatch);
+      await fetchInitialData(dispatch, user);
     }
     setLoading(false);
   };

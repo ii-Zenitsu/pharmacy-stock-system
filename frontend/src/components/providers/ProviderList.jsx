@@ -13,6 +13,7 @@ import { TextInput } from "../UI/MyInputs";
 
 export default function ProviderList() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { providers } = useSelector((state) => state.providers);
   const [provider, setProvider] = useState(null);
   const [editedProvider, setEditedProvider] = useState(null);
@@ -43,7 +44,7 @@ export default function ProviderList() {
   useEffect(() => {
     const fetchData = async () => {
     if (!providers.length) {
-      await fetchInitialData(dispatch); 
+      await fetchInitialData(dispatch, user); 
     }
     setLoading(false);
   };
