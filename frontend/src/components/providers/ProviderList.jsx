@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import Providers from "../../assets/api/Providers"; // Assuming you have a Providers API similar to Medicines
+import Providers from "../../assets/api/Providers";
 import { fetchInitialData } from "../Redux/fetchData";
-import { deleteProvider, updateProvider, addProvider } from "../Redux/slices/ProviderSlice"; // Assuming these actions exist
+import { deleteProvider, updateProvider, addProvider } from "../Redux/slices/ProviderSlice";
 
 import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User } from "lucide-react";

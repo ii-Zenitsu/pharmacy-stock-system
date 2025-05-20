@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import Locations from "../../assets/api/Locations"; // Assume Locations API service exists
-import { fetchInitialData } from "../Redux/fetchData"; // Assuming this can also fetch locations
+import Locations from "../../assets/api/Locations";
+import { fetchInitialData } from "../Redux/fetchData";
 import { deleteLocation, updateLocation, addLocation } from "../Redux/slices/LocationSlice";
 
 import { message, Popconfirm, Table, Spin } from "antd";
