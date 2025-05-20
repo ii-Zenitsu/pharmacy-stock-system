@@ -17,6 +17,9 @@ import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
+import Dashboard from './components/admin/dashboard'
+import Home from './components/admin/Home'
+// import Medicines from './components/admin/medicines'
 
 function App() {
   const dispatch = useDispatch();
@@ -68,8 +71,10 @@ function App() {
             }}
           >
             <Routes>
-              <Route path='/' element={<Header />}>
-                <Route index element={<h1>Home</h1>} />
+             
+              <Route path='/' element={<Header/>}>
+                <Route index element={<Home />} />
+              
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
