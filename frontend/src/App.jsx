@@ -4,7 +4,7 @@ import { StyleProvider } from '@ant-design/cssinjs';
 import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
 import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
 

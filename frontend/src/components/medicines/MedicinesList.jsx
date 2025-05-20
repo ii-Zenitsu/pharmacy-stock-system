@@ -205,6 +205,7 @@ export default function MedicinesList() {
       align: "center",
       minWidth: 124,
       className: "capitalize",
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Bar Code",
@@ -231,6 +232,7 @@ export default function MedicinesList() {
       key: "price",
       align: "center",
       render: (price) => `${price} MAD`,
+      sorter: (a, b) => a.price - b.price,
     },
     {
       title: <div className="capitalize">Details</div>,
