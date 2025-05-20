@@ -13,6 +13,8 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+const USERS_PER_PAGE = 8;
+
 const AdminDashboard = () => {
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
@@ -163,9 +165,290 @@ const AdminDashboard = () => {
           </tbody>
         </table>
       </div>
+
+      {/* User Management Section */}
+      <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "8px", marginTop: "2rem" }}>
+        <h3>Gestion des utilisateurs</h3>
+        <UserManagement />
+      </div>
     </div>
   );
 };
+
+// User Management Component with Add User Form
+function UserManagement() {
+  const [users, setUsers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "employe",
+  });
+  const [formError, setFormError] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/users?page=${page}&limit=${USERS_PER_PAGE}`)
+      .then(res => res.json())
+      .then(data => {
+        setUsers(data.users || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [page, showForm]);
+
+  const handleAddUser = () => {
+    setShowForm(true);
+    setFormError("");
+  };
+
+  const handleFormChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    setFormLoading(true);
+
+    // Validation simple
+    if (!form.name || !form.email || !form.password || !form.role) {
+      setFormError("Tous les champs sont obligatoires.");
+      setFormLoading(false);
+      return;
+    }
+
+    // Appel API pour ajouter l'utilisateur
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setFormError(err.message || "Erreur lors de l'ajout.");
+      } else {
+        setShowForm(false);
+        setForm({ name: "", email: "", password: "", role: "employe" });
+        setPage(1); // Optionnel: revenir à la première page
+      }
+    } catch {
+      setFormError("Erreur réseau.");
+    }
+    setFormLoading(false);
+  };
+
+  return (
+    <div>
+      <button
+        onClick={handleAddUser}
+        style={{
+          background: "#4e73df",
+          color: "#fff",
+          border: "none",
+          borderRadius: "6px",
+          padding: "0.7rem 1.2rem",
+          fontWeight: "bold",
+          cursor: "pointer",
+          marginBottom: "1rem",
+        }}
+      >
+        + Ajouter un utilisateur
+      </button>
+
+      {showForm && (
+        <form
+          onSubmit={handleFormSubmit}
+          style={{
+            background: "#f8f9fc",
+            padding: "1rem",
+            borderRadius: "8px",
+            marginBottom: "1.5rem",
+            maxWidth: 400,
+          }}
+        >
+          <h4 style={{ marginTop: 0 }}>Nouvel utilisateur</h4>
+          <div style={{ marginBottom: "0.7rem" }}>
+            <label>Nom :</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                borderRadius: "4px",
+                border: "1px solid #d1d3e2",
+                marginTop: "0.2rem",
+              }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: "0.7rem" }}>
+            <label>Email :</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleFormChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                borderRadius: "4px",
+                border: "1px solid #d1d3e2",
+                marginTop: "0.2rem",
+              }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: "0.7rem" }}>
+            <label>Mot de passe :</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleFormChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                borderRadius: "4px",
+                border: "1px solid #d1d3e2",
+                marginTop: "0.2rem",
+              }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: "0.7rem" }}>
+            <label>Rôle :</label>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleFormChange}
+              style={{
+                width: "100%",
+                padding: "0.5rem",
+                borderRadius: "4px",
+                border: "1px solid #d1d3e2",
+                marginTop: "0.2rem",
+              }}
+              required
+            >
+              <option value="employe">Employé</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          {formError && (
+            <div style={{ color: "#e74a3b", marginBottom: "0.7rem" }}>{formError}</div>
+          )}
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <button
+              type="submit"
+              disabled={formLoading}
+              style={{
+                background: "#1cc88a",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                padding: "0.5rem 1.2rem",
+                fontWeight: "bold",
+                cursor: formLoading ? "not-allowed" : "pointer",
+              }}
+            >
+              {formLoading ? "Ajout..." : "Ajouter"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              style={{
+                background: "#e74a3b",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                padding: "0.5rem 1.2rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <div>Chargement...</div>
+      ) : (
+        <>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8f9fc" }}>
+                <th style={{ padding: "0.5rem" }}>Nom</th>
+                <th style={{ padding: "0.5rem" }}>Email</th>
+                <th style={{ padding: "0.5rem" }}>Rôle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>
+                    Aucun utilisateur trouvé.
+                  </td>
+                </tr>
+              )}
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td style={{ padding: "0.5rem" }}>{user.name}</td>
+                  <td style={{ padding: "0.5rem" }}>{user.email}</td>
+                  <td style={{ padding: "0.5rem" }}>{user.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* Pagination */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "1rem", gap: "1rem" }}>
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              style={{
+                background: "#f8f9fc",
+                color: "#4e73df",
+                border: "1px solid #d1d3e2",
+                borderRadius: "4px",
+                padding: "0.4rem 1rem",
+                cursor: page === 1 ? "not-allowed" : "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              Précédent
+            </button>
+            <span style={{ fontWeight: "bold" }}>Page {page}</span>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={users.length < USERS_PER_PAGE}
+              style={{
+                background: "#f8f9fc",
+                color: "#4e73df",
+                border: "1px solid #d1d3e2",
+                borderRadius: "4px",
+                padding: "0.4rem 1rem",
+                cursor: users.length < USERS_PER_PAGE ? "not-allowed" : "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              Suivant
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // Summary Card Component
 const SummaryCard = ({ title, value, color }) => (
