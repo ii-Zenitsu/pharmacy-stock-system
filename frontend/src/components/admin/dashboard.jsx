@@ -13,7 +13,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
 
@@ -184,5 +184,88 @@ const SummaryCard = ({ title, value, color }) => (
     <p style={{ fontSize: "2rem", margin: 0 }}>{value}</p>
   </div>
 );
+
+const EmployeeDashboard = () => {
+  const { medicines } = useSelector((state) => state.medicines);
+  const [lowStockList, setLowStockList] = useState([]);
+  const [recentSales, setRecentSales] = useState([]);
+
+  useEffect(() => {
+    if (!medicines) return;
+    // Calculate low stock medicines
+    const lowStock = medicines.filter(
+      (med) => med.quantity <= med.alert_threshold
+    );
+    setLowStockList(lowStock);
+    // TODO: Get recent sales data when available
+    setRecentSales([]);
+  }, [medicines]);
+
+  return (
+    <div style={{ padding: "2rem" }}>
+      <h2>Employee Dashboard</h2>
+      
+      {/* Quick Actions */}
+      <div style={{ display: "flex", gap: "2rem", margin: "2rem 0" }}>
+        <SummaryCard title="Total Medicines" value={medicines?.length || 0} color="#4e73df" />
+        <SummaryCard title="Low Stock Items" value={lowStockList.length} color="#e74a3b" />
+      </div>
+
+      {/* Main Content */}
+      <div style={{ display: "flex", gap: "2rem", flexDirection: "column" }}>
+        {/* Low Stock Alerts */}
+        <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "8px" }}>
+          <h3>Low Stock Alerts</h3>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {lowStockList.length === 0 && <li>All medicines in stock.</li>}
+            {lowStockList.map((med) => (
+              <li key={med.id} style={{ marginBottom: "0.5rem", color: "#e74a3b" }}>
+                <strong>{med.name}</strong> - Current Stock: {med.quantity}
+                {med.alert_threshold && <span> (Alert at: {med.alert_threshold})</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Recent Sales */}
+        <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "8px" }}>
+          <h3>Your Recent Sales</h3>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8f9fc" }}>
+                <th style={{ padding: "0.5rem" }}>Date</th>
+                <th style={{ padding: "0.5rem" }}>Medicine</th>
+                <th style={{ padding: "0.5rem" }}>Quantity</th>
+                <th style={{ padding: "0.5rem" }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentSales.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "1rem" }}>
+                    No recent sales.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  const { user } = useSelector((state) => state.auth);
+  return (
+    <>
+      {user?.role === "admin" ? (
+        <AdminDashboard />
+      ) : (
+        <EmployeeDashboard />
+      )}
+    </>
+  )
+}
 
 export default Dashboard;
