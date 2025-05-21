@@ -13,8 +13,15 @@ import { CheckboxInput, FileInput, SelectInput, TextInput } from "../UI/MyInputs
 
 
 export default function MedicinesList() {
-  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+
+  if (user?.role === "admin") return <AdminList user={user} />;
+  else if (user?.role === "employe") return <EmployeList user={user} />;
+  else return <div className="text-center text-2xl font-bold">You don't have permission to access this page.</div>;
+}
+
+function AdminList({user}) {
+  const dispatch = useDispatch();
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
   const [medicine, setMedicine] = useState(null);
@@ -32,18 +39,6 @@ export default function MedicinesList() {
   const medicinesFuse = new Fuse(medicines, { keys: ["name", "bar_code"], threshold: 0.3 });
   const items = query ? medicinesFuse.search(query).map((r) => r.item) : medicines;
 
-
-  useEffect(() => {
-    if (medicine || adding) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [medicine, adding]);
-
   useEffect(() => {
     const fetchData = async () => {
     if (!medicines.length) {
@@ -53,6 +48,14 @@ export default function MedicinesList() {
   };
   fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   if (medicine || adding) {
+  //     document.body.style.overflow = 'hidden';
+  //   } else {
+  //     document.body.style.overflow = 'auto';
+  //   }
+  // }, [medicine, adding]);
 
   const handleDelete = async (id) => {
     try {
@@ -146,10 +149,6 @@ export default function MedicinesList() {
         }
       });
       formData.append('_method', 'PUT');
-      // debugging formData
-      for (let [key, value] of formData.entries()) {
-        console.log(`FormData - ${key}:`, value);
-      }
 
       const response = await Medicines.Update(values.id, formData);
       if (response.success) {
@@ -262,7 +261,7 @@ export default function MedicinesList() {
             type="search"
             className="grow"
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search"
+            placeholder="Search by name or bar code"
           />
         </label>
         <button className="btn btn-primary btn-sm" onClick={() => {
@@ -546,16 +545,16 @@ export default function MedicinesList() {
                         setNewMedicine(prev => ({ ...prev, image: file }));
                         setPreview(URL.createObjectURL(file));
                       }
-                      e.target.value = null; // Reset file input value
+                      e.target.value = null;
                     }}
                     name="image"
                     className={errors?.image ? "input-error" : ""}
-                    editing={true} // Always editing for new medicine form
-                    disabled={false} // Always enabled for new medicine form
+                    editing={true}
+                    disabled={false}
                     accept="image/png, image/jpeg, image/jpg"
                     previewUrl={preview}
-                    existingImageUrl={null} // No existing image for new medicine
-                    defaultImage={preview ? null : defaultPic} // Show defaultPic if no preview
+                    existingImageUrl={null}
+                    defaultImage={preview ? null : defaultPic}
                     altText={newMedicine?.name || "New Medicine"}
                   />
                 </div>
@@ -673,8 +672,8 @@ export default function MedicinesList() {
                     name="reorder_quantity"
                     min={1}
                     className={errors?.reorder_quantity ? "input-error border-2" : ""}
-                    editing={newMedicine.automatic_reorder} // Keep this logic
-                    disabled={!newMedicine.automatic_reorder} // Keep this logic
+                    editing={newMedicine.automatic_reorder}
+                    disabled={!newMedicine.automatic_reorder}
                   />
                 </div>
               </div>
@@ -683,6 +682,185 @@ export default function MedicinesList() {
         )}
       </aside>
       
+    </div>
+  );
+}
+
+function EmployeList({ user }) {
+  const dispatch = useDispatch();
+  const { medicines } = useSelector((state) => state.medicines);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 10);
+  const [query, setQuery] = useState("");
+
+  const medicinesFuse = new Fuse(medicines || [], { keys: ["name", "bar_code", "formulation"], threshold: 0.3 });
+  const items = query && medicines?.length ? medicinesFuse.search(query).map((r) => r.item) : medicines || [];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      if ((!medicines || medicines.length === 0) && user) {
+        await fetchInitialData(dispatch, user);
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [dispatch, user, medicines?.length]);
+
+
+  const showMedicineDetails = (medicine) => {
+    setSelectedMedicine(medicine);
+  };
+
+  const goBack = () => {
+    setSelectedMedicine(null);
+  };
+
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      align: "center",
+      className: "capitalize",
+      sorter: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+      title: "Bar Code",
+      dataIndex: "bar_code",
+      key: "bar_code",
+      align: "center",
+    },
+    {
+      title: "Dosage",
+      dataIndex: "dosage",
+      key: "dosage",
+      align: "center",
+      render: (text) => text?.replace("-", " "),
+    },
+    {
+      title: "Formulation",
+      dataIndex: "formulation",
+      key: "formulation",
+      align: "center",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+      align: "center",
+      render: (price) => `${price} MAD`,
+      sorter: (a, b) => a.price - b.price,
+    },
+    {
+      title: "Details",
+      key: "details",
+      align: "center",
+      fixed: "right",
+      width: 80,
+      render: (_, record) => (
+        <button className="btn btn-soft btn-primary btn-sm" onClick={() => showMedicineDetails(record)}>
+          <ArrowRight size={16} />
+        </button>
+      ),
+    },
+  ];
+
+  return (
+    <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4 ">
+      <div className="flex flex-wrap justify-between items-center gap-6 my-4 px-3">
+        <h1 className="text-2xl font-bold pb-2">Medicines List</h1>
+      </div>
+      <div className="flex justify-start gap-8 items-center mt-8 mb-2 px-3">
+        <label className="input input-primary input-sm">
+          <svg
+            className="h-[1em] opacity-50"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
+            <g
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeWidth="2.5"
+              fill="none"
+              stroke="currentColor"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </g>
+          </svg>
+          <input
+            type="search"
+            className="grow"
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, bar code..."
+          />
+        </label>
+      </div>
+
+      <div className="my-2">
+        <Table
+          columns={columns}
+          dataSource={items}
+          scroll={{ x: "max-content" }}
+          rowKey="id"
+          loading={{
+            indicator: (
+              <Spin
+                indicator={
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                }
+              />
+            ),
+            spinning: loading,
+          }}
+          pagination={{
+            pageSize: pageSize,
+            pageSizeOptions: [10, 20, 50, 100],
+            className: "m-2",
+            position: ["topCenter", "bottomCenter"],
+            showSizeChanger: true,
+            onShowSizeChange: (c, size) => { setPageSize(size); }
+          }}
+        />
+      </div>
+
+      {/* Details View Modal/Aside */}
+      <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${selectedMedicine ? "opacity-100 visible" : "opacity-0 invisible"}`} />
+      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-2 sm:p-6 transform transition-transform duration-300 ease-in ${selectedMedicine ? "translate-x-0" : "translate-x-full"}`}>
+        {selectedMedicine && (
+          <div className="flex flex-col bg-base-200 w-full h-full gap-4 mx-auto shadow-2xl p-2 sm:p-6 rounded-2xl">
+            <div className="flex justify-start items-center">
+              <button className="btn btn-secondary btn-sm" onClick={goBack}>
+                <ArrowLeft size={16} /> Back
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-4">
+              <div className="flex flex-col sm:w-1/3 gap-1.5">
+                <div className="flex justify-center items-center p-2 h-52 sm:h-full border border-neutral/50 bg-base-300 rounded-lg">
+                  <img
+                    src={selectedMedicine.image || defaultPic}
+                    alt={selectedMedicine.name}
+                    className="max-h-full max-w-full object-contain rounded"
+                    onError={(e) => { e.target.onerror = null; e.target.src = defaultPic; }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col sm:w-2/3 gap-3 sm:gap-6">
+                <div className="flex gap-2 text-2xl items-center font-semibold" ><Info /><span>Basic information</span></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <TextInput label="Name" value={selectedMedicine.name} editing={false} disabled={true} />
+                  <TextInput label="Bar Code" value={selectedMedicine.bar_code} editing={false} disabled={true} />
+                  <TextInput label="Dosage" value={selectedMedicine.dosage?.replace("-", " ")} editing={false} disabled={true} />
+                  <TextInput label="Formulation" value={selectedMedicine.formulation} editing={false} disabled={true} />
+                  <TextInput label="Price" value={`${selectedMedicine.price} MAD`} editing={false} disabled={true} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </aside>
     </div>
   );
 }

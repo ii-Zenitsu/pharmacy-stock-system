@@ -36,9 +36,6 @@ export default function ProviderList() {
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [provider, adding]);
 
   useEffect(() => {

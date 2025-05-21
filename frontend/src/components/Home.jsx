@@ -1,10 +1,27 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { setMedicines } from "./Redux/slices/MedicineSlice";
+import Medicines from "../assets/api/Medicines";
 
 export default function Home() {
   const { medicines } = useSelector((state) => state.medicines);
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(true);
   const [currentDay, setCurrentDay] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+        const response = await Medicines.GetAllPublic();
+        if (response.success) {
+          dispatch(setMedicines(response.data));
+        }
+        else {
+          console.log("Failed to fetch medicines:", response.message);
+        }
+    };
+    fetchData();
+  }, []);
 
   const checkOpenStatus = () => {
     const now = new Date();
@@ -53,8 +70,8 @@ export default function Home() {
             No medicines available.
           </div>
         ) : (
-          medicines.map((med) => (
-            <div key={med.id} className="border rounded-xl shadow-md p-4 bg-white">
+          medicines.map((med, i) => (
+            <div key={i} className="border rounded-xl shadow-md p-4 bg-white">
               <img
                 src={med.image || "/images/defaultPic.png"}
                 alt={med.name}
