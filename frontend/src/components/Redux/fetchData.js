@@ -30,7 +30,8 @@ export const fetchInitialData = async (dispatch, user) => {
       .then(res => handleResponse(res, setUsers, "Users"))
       .catch(error => { console.error("Error fetching users:", error)})
     );
-  } else if (user) {
+  }
+  if (user?.role === "admin" || user?.role === "employe") {
     promises.push(
       Medicines.GetAll()
         .then(res => handleResponse(res, setMedicines, "Medicines"))
