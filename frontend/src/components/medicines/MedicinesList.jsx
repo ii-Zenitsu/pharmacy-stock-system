@@ -5,11 +5,12 @@ import Medicines from "../../assets/api/Medicines";
 import { fetchInitialData } from "../Redux/fetchData";
 import { deleteMedicine, updateMedicine, addMedicine } from "../Redux/slices/MedicineSlice";
 
-import { message, Popconfirm, Table, Spin } from "antd";
-import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert } from "lucide-react";
+import { message, Popconfirm, Table, Spin, Modal } from "antd";
+import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert, ScanBarcode } from "lucide-react";
 import Fuse from "fuse.js";
 import defaultPic from "../../assets/images/defaultPic.png";
 import { CheckboxInput, FileInput, SelectInput, TextInput } from "../UI/MyInputs";
+import QRCodeScanner from "../UI/QrCodeScanner";
 
 
 export default function MedicinesList() {
@@ -29,6 +30,7 @@ function AdminList({user}) {
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [openScanner, setOpenScanner] = useState(false);
   const [newMedicine, setNewMedicine] = useState({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 0, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -181,6 +183,19 @@ function AdminList({user}) {
     }
   };
 
+const setScanResult = (bar_code) => {
+  setOpenScanner(false);
+  
+  if (!bar_code) return messageApi.error("Invalid QR code");
+  
+  if (adding) return setNewMedicine((prev) => ({ ...prev, bar_code }));
+  
+  if (medicine && editing) return setEditedMedicine((prev) => ({ ...prev, bar_code }));
+
+  const med = medicines.find(m => m.bar_code === bar_code);
+  med ? showMedicine(med) : messageApi.error("Medicine not found");
+};
+
   const columns = [
     {
       title: "Name",
@@ -240,7 +255,8 @@ function AdminList({user}) {
           <h1 className="text-2xl font-bold pb-2">Medicines Management</h1>
         </div>
       </div>
-      <div className="flex justify-between gap-8 items-center mt-8">
+      <div className="flex justify-between gap-6 items-center mt-8">
+      <div className="flex gap-2 justify-center items-center">
         <label className="input input-primary input-sm">
           <svg
             className="h-[1em] opacity-50"
@@ -265,6 +281,14 @@ function AdminList({user}) {
             placeholder="Search by name or bar code"
           />
         </label>
+        
+        <button className="btn btn-accent btn-sm btn-circle" onClick={() => {
+          setOpenScanner(true);
+        }}>
+          <ScanBarcode size={16} />
+        </button>
+      </div>
+
         <button className="btn btn-primary btn-sm" onClick={() => {
           setMedicine(null);
           setAdding(true);
@@ -397,6 +421,7 @@ function AdminList({user}) {
                     editing={editing}
                     placeholder="Enter bar code"
                     name="bar_code"
+                    scanner={setOpenScanner}
                     className={errors?.bar_code ? "input-error border-2" : ""}
                   />
 
@@ -588,6 +613,7 @@ function AdminList({user}) {
                     name="bar_code"
                     className={errors?.bar_code ? "input-error border-2" : ""}
                     editing={true}
+                    scanner={setOpenScanner}
                   />
                   <label className={`input w-full transition-colors duration-300 ${errors?.dosage ? "input-error border-2" : ""}`}>
                     <span className="label font-bold w-56">Dosage</span>
@@ -682,7 +708,7 @@ function AdminList({user}) {
           </div>
         )}
       </aside>
-      
+      {openScanner && <ShowModal isOpen={openScanner} onClose={() => setOpenScanner(false)} title="QR Code Scanner" content={<QRCodeScanner setScanResult={setScanResult} />} />}
     </div>
   );
 }
@@ -862,6 +888,20 @@ function EmployeList({ user }) {
           </div>
         )}
       </aside>
+      {/* <ShowModal isOpen={openScanner} onClose={() => setOpenScanner(false)} title="QR Code Scanner" content={<QRCodeScanner setMedicine={setMedicine} />} /> */}
     </div>
+    
   );
+}
+
+function ShowModal({ isOpen, onClose, content, title = null}) {
+  return (
+    <Modal
+      title={title && <h1 className="text-xl font-bold text-center">{title}</h1>}
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}>
+      {content}
+    </Modal>
+  )
 }
