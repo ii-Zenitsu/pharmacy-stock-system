@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ConfigProvider, App as AntdApp } from 'antd'
 import { StyleProvider } from '@ant-design/cssinjs';
 import '@ant-design/v5-patch-for-react-19';
@@ -9,24 +9,30 @@ import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
 import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
 
 import Auth from './assets/api/Auth'
+import Home from './components/Home';
+import Menu from './components/Menu';
 import Header from './components/Header'
 import SignTabs from './components/login/Signup'
 import UsersList from './components/users/UsersList';
+import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
-import Home from './components/Home';
-import Menu from './components/Menu';
+import LocationsList from './components/locations/LocationList';
+import ProvidersList from './components/providers/ProviderList';
+import Dashboard from './components/admin/dashboard';
+import { fetchInitialData } from './components/Redux/fetchData';
 
 function App() {
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
     dispatch(setLoading(true));
     Auth.CheckAuth(dispatch)
       .then(result => {
         setStatus(result);
-        console.log(result)
       });
-    
+
+    fetchInitialData(dispatch, user);
   }, [dispatch]);
 
   return (
@@ -75,32 +81,22 @@ function App() {
                 </Route>
 
                 <Route path='menu' element={<Menu />}>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  {/* Admin and Employee routes */}
+                  <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="medicines" element={<MedicinesList />} />
+                    <Route path="stock" element={<StockList />} />
+                    <Route path="locations" element={<LocationsList />} />
+                  </Route>
                   {/* Admin routes */}
                   <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
-                    <Route path="medicines" element={<MedicinesList />} />
-                    <Route path="stock" element={<h1>Stock</h1>} />
                     <Route path="orders" element={<h1>Orders</h1>} />
-                    <Route path="providers" element={<h1>Providers</h1>} />
-                    <Route path="locations" element={<h1>Locations</h1>} />
+                    <Route path="providers" element={<ProvidersList />} />
                     <Route path="users" element={<UsersList />} />
                     <Route path="logs" element={<h1>Logs</h1>} />
                   </Route>
-                  {/* Employee routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["employe"]} />}>
-                    <Route path="dashboard" element={<h1>Dashboard</h1>} />
-                    <Route path="medicines" element={<MedicinesList />} />
-                    <Route path="stock" element={<h1>Stock</h1>} />
-                    <Route path="locations" element={<h1>Locations</h1>} />
-                  </Route>
                 </Route>
-                
-                {/* Routes that DO NOT use the Menu layout can be outside */}
-                {/* For example, if medicines list was accessible without this specific sidebar for some roles:
-                <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]}/>}>
-                    <Route path="medicines-standalone" element={<MedicinesList />} />
-                </Route>
-                */}
               </Route>
             </Routes>
           </ConfigProvider>

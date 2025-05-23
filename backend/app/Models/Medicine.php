@@ -17,15 +17,16 @@ class Medicine extends Model
         'dosage',
         'formulation',
         'price',
+        'image',
         'alert_threshold',
         'provider_id',
         'automatic_reorder',
         'reorder_quantity'
     ];
-
-    protected $with = [
-        'provider',
-        // 'orders'
+    protected $casts = [
+        'automatic_reorder' => 'boolean',
+        'alert_threshold' => 'integer',
+        'reorder_quantity' => 'integer',
     ];
 
     public function provider()
