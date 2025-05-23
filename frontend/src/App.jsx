@@ -20,6 +20,7 @@ import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';
 import Profile from './components/users/profile';
 import { fetchInitialData } from './components/Redux/fetchData';
+import HomePage from './components/admin/homepage';
 
 function App() {
   const dispatch = useDispatch();
@@ -74,7 +75,7 @@ function App() {
           >
             <Routes>
               <Route path='/' element={<Header />}>
-                <Route index element={<h1>Home</h1>} />
+                <Route index element={<HomePage />} />
                 
                 {/* Public routes */}
                 <Route element={<LoggedOut />}>
