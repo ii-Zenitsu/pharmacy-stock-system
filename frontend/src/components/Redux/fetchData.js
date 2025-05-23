@@ -20,6 +20,7 @@ export const fetchInitialData = async (dispatch, user) => {
   };
   
   if (user?.role === "admin") {
+    
     promises.push(
       Providers.GetAll()
         .then(res => handleResponse(res, setProviders, "Providers"))

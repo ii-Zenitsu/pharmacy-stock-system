@@ -19,4 +19,10 @@ class Order extends Model
     {
         return $this->belongsTo(Medicine::class);
     }
+    
+      public function provider()
+    {
+        return $this->belongsTo(Provider::class);
+    }
 }
+
