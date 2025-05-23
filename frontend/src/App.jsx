@@ -18,6 +18,7 @@ import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';
+import Profile from './components/users/profile';
 import { fetchInitialData } from './components/Redux/fetchData';
 
 function App() {
@@ -74,10 +75,18 @@ function App() {
             <Routes>
               <Route path='/' element={<Header />}>
                 <Route index element={<h1>Home</h1>} />
+                
+                {/* Public routes */}
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
 
+                {/* Protected routes that don't need menu layout */}
+                <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
+                  <Route path="profile" element={<Profile />} />
+                </Route>
+
+                {/* Menu routes with sidebar layout */}
                 <Route path='menu' element={<Menu />}>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   {/* Admin and Employee routes */}

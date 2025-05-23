@@ -108,7 +108,7 @@ export default function Header() {
                 </div>
                 <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                   <li className='text-center font-semibold mb-2'>Welcome {user.first_name} ({user.role})</li>
-                  <li><button>Profile</button></li>
+                  <li><NavLink to="/profile">Profile</NavLink></li>
                   <li><button onClick={logoutUser}>Logout</button></li>
                 </ul>
               </div>
@@ -139,6 +139,7 @@ export default function Header() {
           <div className='flex flex-col items-center gap-2 px-2'>
             { token && <div className='text-center font-semibold mb-2'>Welcome {user.first_name} ({user.role})</div>}
               <NavLink className={({ isActive }) => `btn btn-ghost btn-neutral mx-2 w-full ${isActive ? "btn-active" : ""}`} to="/">Home</NavLink>
+              <NavLink className={({ isActive }) => `btn btn-ghost btn-neutral mx-2 w-full ${isActive ? "btn-active" : ""}`} to="/profile">Profile</NavLink>
             {user?.role === "admin" &&
               <>
                 <NavLink className={({ isActive }) => `btn btn-ghost btn-primary mx-2 w-full ${isActive ? "btn-active" : ""}`} to="/dashboard">Dashboard</NavLink>

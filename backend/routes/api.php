@@ -20,6 +20,8 @@ Route::middleware(AlreadyLoggedInMiddleware::class)->group(function(){
 Route::middleware("auth:sanctum")->controller(AuthController::class)->group(function(){
     Route::get("user", "getUser");
     Route::post("logout", "logout");
+    Route::put("user/profile", "updateProfile");
+    Route::put("user/password", "updatePassword");
 });
 
 // Email verification routes
