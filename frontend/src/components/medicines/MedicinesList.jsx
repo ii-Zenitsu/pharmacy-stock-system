@@ -21,6 +21,7 @@ export default function MedicinesList() {
   const [query, setQuery] = useState("");
   const medicinesFuse = new Fuse(medicines, { keys: ["name", "bar_code"], threshold: 0.3 });
   const items = query ? medicinesFuse.search(query).map((r) => r.item) : medicines;
+  
 
   const fetchMedicines = async () => {
     setLoading(true);
