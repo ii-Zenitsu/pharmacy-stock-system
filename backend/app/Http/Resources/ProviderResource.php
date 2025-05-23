@@ -19,6 +19,7 @@ class ProviderResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'medicines' => new MedicineResource($this->whenLoaded('medicines')),
         ];
     }
 }

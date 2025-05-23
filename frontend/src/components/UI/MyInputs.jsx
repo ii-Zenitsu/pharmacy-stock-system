@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Pencil, Trash2, Plus, SquarePen } from "lucide-react";
+import { Pencil, Trash2, Plus, SquarePen, ScanBarcode } from "lucide-react";
 import { Image } from "antd";
 
 
@@ -44,11 +44,12 @@ export function TextInput({
   className = "",
   type = "text",
   placeholder = "",
+  scanner = null,
   ...props
 }) {
   return (
     <label
-      className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! text-base-content! border-neutral!"} ${className}`}
+      className={`input w-full transition-colors duration-300 pr-1 ${!editing && "cursor-text! text-base-content! border-neutral!"} ${className}`}
     >
       {label && <span className="label font-bold w-44">{label}</span>}
       <input
@@ -60,6 +61,13 @@ export function TextInput({
         disabled={disabled || !editing}
         {...props}
       />
+      {editing && scanner &&
+        <button className="btn btn-accent btn-sm btn-circle" onClick={() => {
+          scanner(true);
+        }}>
+          <ScanBarcode size={16} />
+        </button>
+      }
     </label>
   );
 }
