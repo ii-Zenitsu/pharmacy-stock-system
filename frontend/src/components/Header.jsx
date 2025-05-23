@@ -20,7 +20,7 @@ export default function Header() {
     const [color, setColor] = useState("bg-neutral text-neutral-content");
     
     const switchTab = (el) => {
-      const activeTab = el?.getBoundingClientRect ? el : document.querySelector(`[data-path="${location.pathname}"]`);
+      const activeTab = el?.getBoundingClientRect ? el : document.querySelector(`[data-path="/${location.pathname.split('/')[1]}"]`);
       if (activeTab) {
         const { offsetLeft, offsetWidth } = activeTab;
         controls.start({

@@ -8,6 +8,8 @@ use App\Http\Middleware\isAdminMiddleWare;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProviderController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\StockController; // Added import
 use App\Http\Middleware\isEmployeMiddleWare;
 use App\Http\Middleware\AlreadyLoggedInMiddleware;
 use App\Http\Middleware\IsAdminEmployeeMiddleware;
@@ -43,13 +45,24 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
     Route::middleware([isAdminMiddleWare::class])->group(function(){
         Route::post("/register", [AuthController::class, 'register']);
         Route::apiResource('users', UserController::class);
+        Route::apiResource("medicines",MedicineController::class)->except(['index', 'show']);
+        Route::apiResource("locations",LocationController::class)->except(['index', 'show']);
         Route::apiResource("providers",ProviderController::class);
         Route::apiResource("orders",OrderController::class);
+        Route::put("/stock/{id}", [StockController::class, 'update']);
+        Route::delete("/stock/{id}", [StockController::class, 'destroy']);
     });
 
     // Admin or Employee routes
     Route::middleware([IsAdminEmployeeMiddleware::class])->group(function(){
-        Route::apiResource("medicines",MedicineController::class);
+        Route::get("/medicines", [MedicineController::class, 'index']);
+        Route::get("/medicines/{id}", [MedicineController::class, 'show']);
+        Route::get("/locations", [LocationController::class, 'index']);
+        Route::get("/locations/{id}", [LocationController::class, 'show']);
+        Route::get("/stock", [StockController::class, 'index']);
+        Route::get("/stock/{id}", [StockController::class, 'show']);
+        Route::post("/stock", [StockController::class, 'store']);
+        Route::post("/stock/batch-adjust/{id}", [StockController::class, 'adjustBatchQuantity']);
     });
 });
 

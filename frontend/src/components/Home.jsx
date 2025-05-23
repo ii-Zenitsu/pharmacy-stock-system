@@ -1,10 +1,26 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { setPublicMedicines } from "./Redux/slices/MedicineSlice";
+import Medicines from "../assets/api/Medicines";
 
 export default function Home() {
-  const { medicines } = useSelector((state) => state.medicines);
+  const { publicMedicines } = useSelector((state) => state.medicines);
+  const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(true);
   const [currentDay, setCurrentDay] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+        const response = await Medicines.GetAllPublic();
+        if (response.success) {
+          dispatch(setPublicMedicines(response.data));
+        }
+        else {
+          console.log("Failed to fetch medicines:", response.message);
+        }
+    };
+    fetchData();
+  }, []);
 
   const checkOpenStatus = () => {
     const now = new Date();
@@ -72,13 +88,13 @@ export default function Home() {
 
       {/* Medicines grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {medicines.length === 0 ? (
-          <div className="col-span-full text-center text-lg text-gray-500">
+        {publicMedicines.length === 0 ? (
+          <div className="col-span-full text-center text-lg text-gray-600">
             No medicines available.
           </div>
         ) : (
-          medicines.map((med) => (
-            <div key={med.id} className="border border-gray-200 rounded-xl shadow p-4 bg-white hover:shadow-md transition duration-200">
+          publicMedicines.map((med, i) => (
+            <div key={i} className="border rounded-xl shadow-md p-4 bg-white">
               <img
                 src={med.image || "/images/defaultPic.png"}
                 alt={med.name}

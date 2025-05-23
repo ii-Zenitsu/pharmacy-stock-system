@@ -31,9 +31,11 @@ function App() {
       .then(result => {
         setStatus(result);
       });
-
-    fetchInitialData(dispatch, user);
   }, [dispatch]);
+
+  useEffect(() => {
+    fetchInitialData(dispatch, user);
+  }, [user]);
 
   return (
     <>

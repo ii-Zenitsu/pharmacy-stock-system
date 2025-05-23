@@ -21,6 +21,7 @@ class MedicineResource extends JsonResource
             return [
                 'name' => $this->name,
                 'price' => $this->price,
+                'image' => $this->image ? url(Storage::url($this->image)) : null,
             ];
         }
 
@@ -51,6 +52,7 @@ class MedicineResource extends JsonResource
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
                 'price' => $this->price,
+                'image' => $this->image ? url(Storage::url($this->image)) : null,
             ];
         }
 

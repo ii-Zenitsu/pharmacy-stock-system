@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   medicines: [],
+  publicMedicines: [],
 };
 
 const medicinesSlice = createSlice({
@@ -10,6 +11,9 @@ const medicinesSlice = createSlice({
   reducers: {
     setMedicines(state, action) {
       state.medicines = action.payload;
+    },
+    setPublicMedicines(state, action) {
+      state.publicMedicines = action.payload;
     },
     addMedicine(state, action) {
       state.medicines.push(action.payload);
@@ -26,7 +30,7 @@ const medicinesSlice = createSlice({
   },
 });
 
-export const { setMedicines, addMedicine, updateMedicine, deleteMedicine } = medicinesSlice.actions;
+export const { setMedicines, setPublicMedicines, addMedicine, updateMedicine, deleteMedicine } = medicinesSlice.actions;
 const MedicinesReducer = medicinesSlice.reducer;
 
 export default MedicinesReducer;

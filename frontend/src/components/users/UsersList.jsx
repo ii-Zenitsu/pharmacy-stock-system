@@ -7,10 +7,12 @@ import Fuse from "fuse.js"
 import { setUsers, deleteUser, updateUser, addUser } from "../Redux/slices/UserSlice"
 import { SideLogo } from "../login/Signup"
 import Auth from "../../assets/api/Auth"
+import { fetchInitialData } from "../Redux/fetchData"
 
 export default function UsersList() {
   const dispatch = useDispatch()
   const { users } = useSelector(state => state.users)
+  const currentUser = useSelector(state => state.auth.user)
   const [user, setUser] = useState(null)
   const [editedUser, setEditedUser] = useState(null)
   const [editing, setEditing] = useState(false)
@@ -22,27 +24,16 @@ export default function UsersList() {
   const [query, setQuery] = useState("")
   const usersFuse = new Fuse(users, { keys: ["first_name", "last_name", "email"], threshold: 0.3 })
   const items = query ? usersFuse.search(query).map(r => r.item) : users
-  
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      const response = await Users.GetAll()
-      if (response.success) {
-        dispatch(setUsers(response.data))
-      } else {
-        messageApi.error(response.message)
-      }
-    } catch (error) {
-      console.log("Error fetching Users:", error)
-      messageApi.error("Failed to load Users. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+      const fetchData = async () => {
+      if (!users) {
+        await fetchInitialData(dispatch, currentUser);
+      }
+      setLoading(false);
+    };
+    fetchData();
+    }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -63,7 +54,6 @@ export default function UsersList() {
     setUser(user)
     setEditedUser({...user})
   }
-
 
   const goBack = () => {
     setUser(null)

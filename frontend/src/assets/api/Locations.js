@@ -7,8 +7,8 @@ export default class Locations {
       const res = await axios({ method, url, data });
       return {
         success: true,
-        data: res.data.data,
-        message: res.data.message,
+        data: res.data,
+        message: res.message,
       };
     } catch (error) {
       console.log(error);

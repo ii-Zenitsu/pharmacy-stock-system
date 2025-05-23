@@ -25,7 +25,7 @@ export default function LocationList() {
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
 
   const [query, setQuery] = useState("");
-  const locationsFuse = new Fuse(locations, { keys: ["name", "description"], threshold: 0.3 });
+  const locationsFuse = new Fuse(locations, { keys: ["name"], threshold: 0.3 });
   const items = query ? locationsFuse.search(query).map((r) => r.item) : locations;
 
   useEffect(() => {
@@ -34,20 +34,17 @@ export default function LocationList() {
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [location, adding]);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchData = async () => {
-      if (!locations.length) {
-        await fetchInitialData(dispatch, user);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, [dispatch, locations.length]); 
+    if (!locations) {
+      await fetchInitialData(dispatch, user);
+    }
+    setLoading(false);
+  };
+  fetchData();
+  }, []);
 
   const handleDelete = async (id) => {
     try {
