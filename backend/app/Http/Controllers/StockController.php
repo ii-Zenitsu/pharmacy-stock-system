@@ -63,9 +63,10 @@ class StockController extends Controller
         $stock = Stock::findOrFail($id);
 
         $validated = $request->validate([
+            'medicine_id' => 'sometimes|required|exists:medicines,id',
+            'location_id' => 'sometimes|required|exists:locations,id',
             'quantity' => 'sometimes|required|integer|min:0',
             'expiration_date' => 'sometimes|required|date',
-            // 'reason' => 'nullable|string|max:255' 
         ]);
 
         $stock->update($validated);
@@ -83,22 +84,24 @@ class StockController extends Controller
     }
 
     /**
-     * Adjust the quantity of a specific stock batch.
-     * This is a custom action, more specific than a generic update.
+     * Adjust the quantity of multiple stock entries in a batch.
      */
-    public function adjustBatchQuantity(Request $request, $id)
+    public function adjustBatchesQuantity(Request $request)
     {
-        $stock = Stock::findOrFail($id);
-
         $validated = $request->validate([
-            'quantity' => 'required|integer|min:0',
-            // 'reason' => 'nullable|string|max:255',
+            '*.id' => 'required|exists:stocks,id',
+            '*.quantity' => 'required|integer|min:1',
         ]);
-        // Log::info("Stock adjustment for batch {$id}: Old quantity {$stock->quantity}, New quantity {$validated['quantity']}, Reason: {$validated['reason']}");
-
-        $stock->quantity = $validated['quantity'];
-        $stock->save();
-
-        return response()->json($stock->load(['medicine', 'location']));
+        $updatedItems = [];
+        foreach ($validated as $item) {
+            $stock = Stock::findOrFail($item['id']);
+            if (abs($item['quantity']) > $stock->quantity) {
+                return response()->json(['error' => 'Insufficient stock quantity for item ID ' . $item['id']], 400);
+            }
+            $stock->quantity -= $item['quantity'];
+            $stock->save();
+            $updatedItems[] = $stock->load(['medicine', 'location']);
+        }
+        return response()->json(['message' => count($updatedItems) . ' stock items updated successfully.', 'data' => $updatedItems]);
     }
 }

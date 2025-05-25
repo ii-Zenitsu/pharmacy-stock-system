@@ -1,12 +1,14 @@
 import { useSelector } from "react-redux";
+import Users from "../../assets/api/Users";
+import Stocks from "../../assets/api/Stocks";
 import Medicines from "../../assets/api/Medicines";
 import Providers from "../../assets/api/Providers";
+import Locations from "../../assets/api/Locations";
+import { setUsers } from "./slices/UserSlice";
 import { setMedicines } from "./slices/MedicineSlice";
 import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
-import Locations from "../../assets/api/Locations";
-import Users from "../../assets/api/Users";
-import { setUsers } from "./slices/UserSlice";
+import { setStockItems } from "./slices/StockSlice";
 
 
 export const fetchInitialData = async (dispatch, user) => {
@@ -41,6 +43,11 @@ export const fetchInitialData = async (dispatch, user) => {
       Locations.GetAll()
         .then(res => handleResponse(res, setLocations, "Locations"))
         .catch(error => { console.error("Error fetching locations:", error)})
+    );
+    promises.push(
+      Stocks.GetAll()
+      .then(res => handleResponse(res, setStockItems, "Stocks"))
+      .catch(error => { console.error("Error fetching stocks:", error)})
     );
   }
 

@@ -9,7 +9,7 @@ import { message, Popconfirm, Table, Spin, Modal } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert, ScanBarcode } from "lucide-react";
 import Fuse from "fuse.js";
 import defaultPic from "../../assets/images/defaultPic.png";
-import { CheckboxInput, FileInput, SelectInput, TextInput } from "../UI/MyInputs";
+import { CheckboxInput, FileInput, SearchSelectInput, SelectInput, TextInput } from "../UI/MyInputs";
 import QRCodeScanner from "../UI/QrCodeScanner";
 
 
@@ -139,7 +139,11 @@ function AdminList({user}) {
       const excludeFromForm = ['id', 'provider', 'created_at']
       Object.keys(values).forEach(key => {
         if (key === 'image') {
-          values[key] instanceof File ? formData.append(key, values[key]) : formData.append(key, '');
+          if (values[key] instanceof File) {
+            formData.append(key, values[key]);
+          } else if (values[key] === 'REMOVE_IMAGE') {
+            formData.append(key, '');
+          }
         }
         else if (!excludeFromForm.includes(key)) {
           if (key === 'automatic_reorder') {
@@ -192,7 +196,8 @@ const setScanResult = (bar_code) => {
   if (medicine && editing) return setEditedMedicine((prev) => ({ ...prev, bar_code }));
 
   const med = medicines.find(m => m.bar_code === bar_code);
-  med ? showMedicine(med) : messageApi.error("Medicine not found");
+  if (med) { setQuery(bar_code); showMedicine(med);}
+  else messageApi.error("Medicine not found");
 };
 
   const columns = [
@@ -276,6 +281,7 @@ const setScanResult = (bar_code) => {
           <input
             type="search"
             className="grow"
+            value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or bar code"
           />
@@ -379,7 +385,7 @@ const setScanResult = (bar_code) => {
 
                 <div className="flex justify-center items-center p-2 h-full border border-neutral/50 bg-base-300 rounded-lg">
                   <FileInput
-                    clear={() => {setEditedMedicine(prev => ({ ...prev, image: null })); setPreview(null);}}
+                    clear={() => {setEditedMedicine(prev => ({ ...prev, image: 'REMOVE_IMAGE' })); setPreview(null);}}
                     onChange={e => {setEditedMedicine(prev => ({ ...prev, image: e.target.files[0] })); setPreview(URL.createObjectURL(e.target.files[0])); e.target.value = null;}}
                     name="image"
                     className={errors?.image ? "input-error" : ""}
@@ -447,10 +453,10 @@ const setScanResult = (bar_code) => {
                     </select>
                   </label>
 
-                  <SelectInput
+                  <SearchSelectInput
                     label="Formulation"
                     value={editedMedicine?.formulation}
-                    onChange={(e) => setEditedMedicine({ ...editedMedicine, formulation: e.target.value })}
+                    onChange={value => setEditedMedicine({ ...editedMedicine, formulation: value })}
                     disabled={!editing}
                     editing={editing}
                     name="formulation"
@@ -496,15 +502,15 @@ const setScanResult = (bar_code) => {
                     className={errors?.alert_threshold ? "input-error border-2" : ""}
                   />
 
-                  <SelectInput
+                  <SearchSelectInput
                     label="Provider"
-                    value={editedMedicine?.provider_id}
-                    onChange={(e) => setEditedMedicine({ ...editedMedicine, provider_id: e.target.value })}
+                    value={Number(editedMedicine?.provider_id)}
+                    onChange={value => setEditedMedicine({ ...editedMedicine, provider_id: value })}
                     disabled={!editing}
                     editing={editing}
-                    options={[{ value: "", label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
                     name="provider_id"
                     className={errors?.provider_id ? "input-error border-2" : ""}
+                    options={[{ value: 0, label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
                   />
 
                   <CheckboxInput
@@ -563,7 +569,7 @@ const setScanResult = (bar_code) => {
               <div className="flex flex-col sm:w-1/3 gap-1.5">
                 <div className="flex justify-center items-center p-2 h-full border border-neutral/50 bg-base-300 rounded-lg">
                   <FileInput
-                    clear={() => { setNewMedicine(prev => ({ ...prev, image: null })); setPreview(null); }}
+                    clear={() => { setNewMedicine(prev => ({ ...prev, image: 'REMOVE_IMAGE' })); setPreview(null); }}
                     onChange={e => {
                       if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
@@ -636,13 +642,14 @@ const setScanResult = (bar_code) => {
                       <option value="g">g</option>
                     </select>
                   </label>
-                  <SelectInput
+                  <SearchSelectInput
                     label="Formulation"
                     value={newMedicine.formulation}
-                    onChange={e => setNewMedicine({ ...newMedicine, formulation: e.target.value })}
+                    onChange={value => setNewMedicine({ ...newMedicine, formulation: value })}
                     name="formulation"
                     className={errors?.formulation ? "input-error border-2" : ""}
                     editing={true}
+                    disabled={false}
                     options={[
                       { value: "tablet", label: "Tablet" },
                       { value: "syrup", label: "Syrup" },
@@ -672,14 +679,15 @@ const setScanResult = (bar_code) => {
                     className={errors?.alert_threshold ? "input-error border-2" : ""}
                     editing={true}
                   />
-                  <SelectInput
+                  <SearchSelectInput
                     label="Provider"
-                    value={newMedicine.provider_id}
-                    onChange={e => setNewMedicine({ ...newMedicine, provider_id: e.target.value })}
-                    options={[{ value: "", label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
+                    value={Number(newMedicine.provider_id)}
+                    onChange={value => setNewMedicine({ ...newMedicine, provider_id: value })}
                     name="provider_id"
                     className={errors?.provider_id ? "input-error border-2" : ""}
                     editing={true}
+                    disabled={false}
+                    options={[{ value: 0, label: "No Provider" }, ...providers.map((p) => ({ value: p.id, label: p.name }))]}
                   />
                   <CheckboxInput
                     label="Automatic Reorder"
@@ -719,6 +727,8 @@ function EmployeList({ user }) {
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 10);
   const [query, setQuery] = useState("");
+  const [openScanner, setOpenScanner] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const medicinesFuse = new Fuse(medicines || [], { keys: ["name", "bar_code", "formulation"], threshold: 0.3 });
   const items = query && medicines?.length ? medicinesFuse.search(query).map((r) => r.item) : medicines || [];
@@ -741,6 +751,20 @@ function EmployeList({ user }) {
 
   const goBack = () => {
     setSelectedMedicine(null);
+  };
+
+  const setScanResult = (bar_code) => {
+    setOpenScanner(false);
+    
+    if (!bar_code) return messageApi.error("Invalid QR code");
+    
+    const med = medicines.find(m => m.bar_code === bar_code);
+    if (med) {
+      setQuery(bar_code);
+      showMedicineDetails(med);
+    } else {
+      messageApi.error("Medicine not found");
+    }
   };
 
   const columns = [
@@ -795,10 +819,11 @@ function EmployeList({ user }) {
 
   return (
     <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4 ">
+      {contextHolder}
       <div className="flex flex-wrap justify-between items-center gap-6 my-4 px-3">
         <h1 className="text-2xl font-bold pb-2">Medicines List</h1>
       </div>
-      <div className="flex justify-start gap-8 items-center mt-8 mb-2 px-3">
+      <div className="flex justify-start gap-2 items-center mt-8 mb-2 px-3">
         <label className="input input-primary input-sm">
           <svg
             className="h-[1em] opacity-50"
@@ -819,10 +844,17 @@ function EmployeList({ user }) {
           <input
             type="search"
             className="grow"
+            value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, bar code..."
           />
         </label>
+        
+        <button className="btn btn-accent btn-sm btn-circle" onClick={() => {
+          setOpenScanner(true);
+        }}>
+          <ScanBarcode size={16} />
+        </button>
       </div>
 
       <div className="my-2">
@@ -887,7 +919,7 @@ function EmployeList({ user }) {
           </div>
         )}
       </aside>
-      {/* <ShowModal isOpen={openScanner} onClose={() => setOpenScanner(false)} title="QR Code Scanner" content={<QRCodeScanner setMedicine={setMedicine} />} /> */}
+      {openScanner && <ShowModal isOpen={openScanner} onClose={() => setOpenScanner(false)} title="QR Code Scanner" content={<QRCodeScanner setScanResult={setScanResult} />} />}
     </div>
     
   );

@@ -21,8 +21,9 @@ class DatabaseSeeder extends Seeder
             ProviderSeeder::class,
             UserSeeder::class,
             MedicineSeeder::class,
-            LocationSeeder::class, // Added
-            MedicineLocationSeeder::class, // Added
+            LocationSeeder::class,
+            // MedicineLocationSeeder::class,
+            StockSeeder::class,
         ]);
     }
 }

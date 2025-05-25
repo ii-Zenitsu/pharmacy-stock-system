@@ -70,6 +70,14 @@ function App() {
                 },
                 Radio: {
                   buttonSolidCheckedColor: "rgb(0,0,0)"
+                },
+                Select: {
+                  colorBorder: "rgba(0,0,0,0)",
+                  activeBorderColor: "rgba(0,0,0,0)",
+                  activeOutlineColor: "rgba(0,0,0,0)",
+                  hoverBorderColor: "rgba(0,0,0,0)",
+                  colorTextDisabled: "rgb(0,0,0)",
+                  colorBgContainerDisabled: "rgba(0,0,0,0)"
                 }
               }
             }}

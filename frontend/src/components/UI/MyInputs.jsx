@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
-import { Pencil, Trash2, Plus, SquarePen, ScanBarcode } from "lucide-react";
-import { Image } from "antd";
+import { useRef, useState, useEffect } from "react";
+import { Pencil, Trash2, Plus, SquarePen, ScanBarcode, ChevronDown, Search } from "lucide-react";
+import { Image, Select } from "antd";
 
 
 export function SelectInput({
@@ -31,6 +31,35 @@ export function SelectInput({
             : <option key={opt.value} value={opt.value}>{opt.label}</option>
         )}
       </select>
+    </label>
+  );
+}
+export function SearchSelectInput({
+  value = "",
+  onChange,
+  disabled = false,
+  editing = true,
+  label = "",
+  className = "",
+  options = [],
+  ...props
+}) {
+  return (
+    <label
+      className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! bg-base-200 text-base-content! border-neutral!"} ${className}`}
+    >
+      {label && <span className="label font-bold w-44">{label}</span>}
+      <Select
+        showSearch
+        placeholder="Search and select..."
+        className="w-full"
+        value={value}
+        disabled={disabled || !editing}
+        options={options}
+        onChange={onChange}
+        optionFilterProp="label"
+        {...props}
+      />
     </label>
   );
 }

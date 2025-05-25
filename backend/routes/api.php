@@ -62,7 +62,7 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
         Route::get("/stock", [StockController::class, 'index']);
         Route::get("/stock/{id}", [StockController::class, 'show']);
         Route::post("/stock", [StockController::class, 'store']);
-        Route::post("/stock/batch-adjust/{id}", [StockController::class, 'adjustBatchQuantity']);
+        Route::post("/stock/batches-adjust", [StockController::class, 'adjustBatchesQuantity']);
     });
 });
 

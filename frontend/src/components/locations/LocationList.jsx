@@ -172,9 +172,9 @@ useEffect(() => {
           </svg>
           <input type="search" className="grow" onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, description" />
         </label>
-        <button className="btn btn-primary btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
+        {user?.role === 'admin' && <button className="btn btn-error btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
           <Plus size={16} /> Add Location
-        </button>
+        </button>}
       </div>
 
       <div className="my-2">
@@ -198,12 +198,14 @@ useEffect(() => {
               {!editing ? (
                 <>
                   <button className="btn btn-secondary btn-sm" onClick={goBack}> <ArrowLeft size={16} /> Back </button>
-                  <div className="flex gap-2">
-                    <button className="btn btn-primary btn-sm w-22" onClick={() => setEditing(true)}> <Pencil size={16} /> Edit </button>
-                    <Popconfirm placement="bottomLeft" title="Delete the Location?" description="Are you sure you want to delete this location?" okText="Yes" cancelText="No" icon={<CircleHelp size={16} className="m-1" />} onConfirm={() => handleDelete(location.id)}>
-                      <button className="btn btn-error btn-sm w-22"> <Trash2 size={16} /> Delete </button>
-                    </Popconfirm>
-                  </div>
+                  {user?.role === 'admin' && (
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary btn-sm w-22" onClick={() => setEditing(true)}> <Pencil size={16} /> Edit </button>
+                      <Popconfirm placement="bottomLeft" title="Delete the Location?" description="Are you sure you want to delete this location?" okText="Yes" cancelText="No" icon={<CircleHelp size={16} className="m-1" />} onConfirm={() => handleDelete(location.id)}>
+                        <button className="btn btn-error btn-sm w-22"> <Trash2 size={16} /> Delete </button>
+                      </Popconfirm>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>

@@ -19,7 +19,7 @@ class Stock extends Model
     ];
 
     protected $casts = [
-        'expiration_date' => 'date',
+        'expiration_date' => 'date:Y-m-d',
     ];
 
     public function medicine()

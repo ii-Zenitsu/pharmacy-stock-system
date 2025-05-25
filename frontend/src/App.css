@@ -69,3 +69,6 @@ input[type=number] {
     opacity: 100%;
   }
 }
+.ant-select-selector {
+  cursor: text;
+}
