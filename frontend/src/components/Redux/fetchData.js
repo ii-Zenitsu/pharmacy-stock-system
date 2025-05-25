@@ -4,9 +4,11 @@ import Providers from "../../assets/api/Providers";
 import { setMedicines } from "./slices/MedicineSlice";
 import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
+import { setOrders } from "./slices/OrderSlice"; 
 import Locations from "../../assets/api/Locations";
 import Users from "../../assets/api/Users";
 import { setUsers } from "./slices/UserSlice";
+import Orders from "../../assets/api/Orders";
 
 
 export const fetchInitialData = async (dispatch, user) => {
@@ -30,6 +32,11 @@ export const fetchInitialData = async (dispatch, user) => {
       Users.GetAll()
       .then(res => handleResponse(res, setUsers, "Users"))
       .catch(error => { console.error("Error fetching users:", error)})
+    );
+      promises.push(
+      Orders.GetAll()
+        .then(res => handleResponse(res, setOrders, "Orders"))
+        .catch(error => { console.error("Error fetching orders:", error) }) // ⬅️ ajout ici
     );
   }
   if (user?.role === "admin" || user?.role === "employe") {

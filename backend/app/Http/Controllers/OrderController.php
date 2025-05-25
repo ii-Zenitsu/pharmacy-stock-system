@@ -36,29 +36,29 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
-    public function update(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
+    // public function update(Request $request, $id)
+    // {
+    //     $order = Order::findOrFail($id);
 
-        $validated = $request->validate([
-            'medicine_id' => 'required|exists:medicines,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+    //     $validated = $request->validate([
+    //         'medicine_id' => 'required|exists:medicines,id',
+    //         'quantity' => 'required|integer|min:1',
+    //     ]);
 
-        $order->update([
-            'medicine_id' => $validated['medicine_id'],
-            'quantity' => $validated['quantity'],
-        ]);
+    //     $order->update([
+    //         'medicine_id' => $validated['medicine_id'],
+    //         'quantity' => $validated['quantity'],
+    //     ]);
 
-        return new OrderResource($order);
-    }
+    //     return new OrderResource($order);
+    // }
 
-    public function destroy($id)
-    {
-        $order = Order::findOrFail($id);
-        $order->delete();
-        return response()->json(['message' => 'Order deleted successfully.']);
+    // public function destroy($id)
+    // {
+    //     $order = Order::findOrFail($id);
+    //     $order->delete();
+    //     return response()->json(['message' => 'Order deleted successfully.']);
        
-    }
+    // }
 
 }
