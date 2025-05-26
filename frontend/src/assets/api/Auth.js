@@ -114,6 +114,7 @@ export default class Auth {
     try {
       await axios.post("logout");
       Cookies.remove("token");
+      Cookies.remove("cartItems");
       setBearerToken(null);
       return { success: true, message: "Logged out successfully" };
     } catch (error) {

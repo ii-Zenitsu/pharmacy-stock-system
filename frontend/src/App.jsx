@@ -20,6 +20,7 @@ import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';
 import { fetchInitialData } from './components/Redux/fetchData';
+import CartExample from './components/cart/CartExample';
 
 function App() {
   const dispatch = useDispatch();
@@ -58,6 +59,8 @@ function App() {
                 Table: {
                   rowHoverBg: "#d5f796",
                   headerBg: "#e1eebc",
+                  headerSortActiveBg: "#d6f796c2",
+                  headerSortHoverBg: "#d6f796c2",
                 },
                 Button: {
                   colorTextLightSolid: "rgb(0,0,0)"
@@ -86,6 +89,7 @@ function App() {
               <Route path='/' element={<Header />}>
                 <Route path='/' element={<Home/>} />
                 <Route path='/profile' element={<h1>Profile</h1>} />
+                <Route path='/cart' element={<CartExample />} />
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>

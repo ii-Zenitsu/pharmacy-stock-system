@@ -142,10 +142,15 @@ export default function StockList() {
     setOpenScanner(false);
     
     if (!bar_code) return messageApi.error("Invalid QR code");
-    
-    // Find stock items with medicines that have this bar code
     const med = medicines.find(med => med.bar_code === bar_code);
-    med ? setQuery(med.name) : messageApi.error("No medicine found with this bar code");
+    if (!med) return messageApi.error("No medicine found with this bar code");
+
+    if (adding) return setNewStockItem((prev) => ({ ...prev, medicine_id: med?.id || "" }));
+
+    if (stockItem && editing) return setEditedStockItem((prev) => ({ ...prev, medicine_id: med?.id || "" }));
+
+    // Find stock items with medicines that have this bar code
+    setQuery(med.name);
   };
 
   const columns = [
@@ -342,6 +347,7 @@ export default function StockList() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SearchSelectInput
                   label="Medicine"
+                  scanner={setOpenScanner}
                   value={Number(editedStockItem?.medicine_id)}
                   onChange={value => setEditedStockItem({ ...editedStockItem, medicine_id: value })}
                   disabled={!editing}
@@ -433,6 +439,7 @@ export default function StockList() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SearchSelectInput
                   label="Medicine"
+                  scanner={setOpenScanner}
                   value={Number(newStockItem.medicine_id)}
                   onChange={value => setNewStockItem({ ...newStockItem, medicine_id: value })}
                   name="medicine_id"

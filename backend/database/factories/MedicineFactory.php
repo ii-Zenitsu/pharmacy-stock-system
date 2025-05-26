@@ -23,7 +23,7 @@ class MedicineFactory extends Factory
             'bar_code' => $this->faker->unique()->ean13(), // Generates a unique 13-digit barcode
             'dosage' => $this->faker->randomElement($dosages),
             'formulation' => $this->faker->randomElement(['tablet', 'syrup', 'injection', 'ointment']),
-            'price' => $this->faker->randomFloat(2, 10, 500),
+            'price' => $this->faker->randomFloat(2, 10, 150),
             'alert_threshold' => $this->faker->numberBetween(5, 20),
             'provider_id' => Provider::inRandomOrder()->first()->id,
             'automatic_reorder' => $this->faker->boolean(),

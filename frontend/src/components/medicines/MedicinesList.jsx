@@ -5,12 +5,13 @@ import Medicines from "../../assets/api/Medicines";
 import { fetchInitialData } from "../Redux/fetchData";
 import { deleteMedicine, updateMedicine, addMedicine } from "../Redux/slices/MedicineSlice";
 
-import { message, Popconfirm, Table, Spin, Modal } from "antd";
-import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert, ScanBarcode } from "lucide-react";
+import { message, Popconfirm, Table, Spin, Modal, ConfigProvider } from "antd";
+import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, PackageOpen, TriangleAlert, ScanBarcode, ShoppingBag } from "lucide-react";
 import Fuse from "fuse.js";
 import defaultPic from "../../assets/images/defaultPic.png";
 import { CheckboxInput, FileInput, SearchSelectInput, SelectInput, TextInput } from "../UI/MyInputs";
 import QRCodeScanner from "../UI/QrCodeScanner";
+import { useCart } from "../hooks/useCart";
 
 
 export default function MedicinesList() {
@@ -251,6 +252,65 @@ const setScanResult = (bar_code) => {
     },
   ];
 
+  const token = {
+    components: {
+      Table: {
+        headerBg: "#67ae6e",
+        headerSortActiveBg: "#328e6e",
+        headerSortHoverBg: "#328e6e",
+        borderColor: "rgb(0,0,0)"
+      }
+    }
+  }
+
+  const stockColumns = [
+    {
+      title: "Location",
+      dataIndex: "location",
+      key: "location",
+      align: "center",
+      render: (location) => location?.name || 'N/A',
+    },
+    {
+      title: <><span className="hidden sm:inline">Quantity</span><span className="inline sm:hidden">Qty</span></>,
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "center",
+      sorter: (a, b) => a.quantity - b.quantity,
+    },
+    {
+      title: "Expiration Date",
+      dataIndex: "expiration_date",
+      key: "expiration_date",
+      align: "center",
+      responsive: ['sm'],
+      render: (date) => new Date(date).toLocaleDateString(),
+      sorter: (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date),
+    },
+    {
+      title: "Days Left",
+      dataIndex: "expiration_date",
+      key: "expiration_date",
+      align: "center",
+      defaultSortOrder: 'ascend',
+      sorter: (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date),
+      render: (date) => {
+        const today = new Date();
+        const expirationDate = new Date(date);
+        const diffTime = expirationDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 ? `${diffDays} days` : "Expired";
+      }
+    },
+    {
+      title: <div className="flex items-center justify-center"><ShoppingBag className="inline sm:hidden" /><span className="hidden sm:inline">Add to Cart</span></div>,
+      dataIndex: "id",
+      key: "id",
+      align: "center",
+      render: (_, record) => <CartBtn item={record} name={medicine?.name} price={medicine?.price} />,
+    },
+  ];
+
   return (
     <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4 ">
       {contextHolder}
@@ -383,7 +443,7 @@ const setScanResult = (bar_code) => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-4">
               <div className="flex flex-col sm:w-1/3 gap-1.5">
 
-                <div className="flex justify-center items-center p-2 h-full border border-neutral/50 bg-base-300 rounded-lg">
+                <div className="flex justify-center items-center p-2 h-fit border border-neutral/50 bg-base-300 rounded-lg">
                   <FileInput
                     clear={() => {setEditedMedicine(prev => ({ ...prev, image: 'REMOVE_IMAGE' })); setPreview(null);}}
                     onChange={e => {setEditedMedicine(prev => ({ ...prev, image: e.target.files[0] })); setPreview(URL.createObjectURL(e.target.files[0])); e.target.value = null;}}
@@ -536,6 +596,9 @@ const setScanResult = (bar_code) => {
                   />
                   
                 </div>
+                <ConfigProvider theme={token}>
+                  {!editing && <Table dataSource={editedMedicine?.stocks} className="sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />}
+                </ConfigProvider>
               </div>
             </div>
           </div>
@@ -817,6 +880,66 @@ function EmployeList({ user }) {
     },
   ];
 
+  const token = {
+    components: {
+      Table: {
+        headerBg: "#67ae6e",
+        headerSortActiveBg: "#328e6e",
+        headerSortHoverBg: "#328e6e",
+        borderColor: "rgb(0,0,0)"
+      }
+    }
+  }
+
+  const stockColumns = [
+    {
+      title: "Location",
+      dataIndex: "location",
+      key: "location",
+      align: "center",
+      render: (location) => location?.name || 'N/A',
+    },
+    // title is Quantity in large screens, but Qty in small screens
+    {
+      title: <><span className="hidden sm:inline">Quantity</span><span className="inline sm:hidden">Qty</span></>,
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "center",
+      sorter: (a, b) => a.quantity - b.quantity,
+    },
+    {
+      title: "Expiration Date",
+      dataIndex: "expiration_date",
+      key: "expiration_date",
+      align: "center",
+      responsive: ['sm'],
+      render: (date) => new Date(date).toLocaleDateString(),
+      sorter: (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date),
+    },
+    {
+      title: "Days Left",
+      dataIndex: "expiration_date",
+      key: "expiration_date",
+      align: "center",
+      defaultSortOrder: 'ascend',
+      sorter: (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date),
+      render: (date) => {
+        const today = new Date();
+        const expirationDate = new Date(date);
+        const diffTime = expirationDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 ? `${diffDays} days` : "Expired";
+      }
+    },
+    {
+      title: <div className="flex items-center justify-center"><ShoppingBag className="inline sm:hidden" /><span className="hidden sm:inline">Add to Cart</span></div>,
+      dataIndex: "id",
+      key: "id",
+      align: "center",
+      render: (_, record) => <CartBtn item={record} name={selectedMedicine?.name} price={selectedMedicine?.price} />,
+    },
+  ];
+  
   return (
     <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4 ">
       {contextHolder}
@@ -914,6 +1037,9 @@ function EmployeList({ user }) {
                   <TextInput label="Formulation" value={selectedMedicine.formulation} editing={false} disabled={true} />
                   <TextInput label="Price" value={`${selectedMedicine.price} MAD`} editing={false} disabled={true} />
                 </div>
+                <ConfigProvider theme={token}>
+                  <Table dataSource={selectedMedicine?.stocks} className="sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />
+                </ConfigProvider>
               </div>
             </div>
           </div>
@@ -935,4 +1061,32 @@ function ShowModal({ isOpen, onClose, content, title = null}) {
       {content}
     </Modal>
   )
+}
+
+function CartBtn({item, price, name}) {
+  const { addItem, isInCart, isAtMaxQuantity } = useCart();
+  const isExpired = new Date(item.expiration_date) < new Date();
+  const hasStock = item.quantity > 0;
+  const itemInCart = isInCart(item.id);
+  // const itemInCart = isInCart(item.id, name);
+  const atMaxQuantity = isAtMaxQuantity(item.id);
+
+  return (
+    <button
+      onClick={() => addItem(item.id, 1, item.quantity, price, name)}
+      className="btn btn-sm btn-accent min-w-16 p-0"
+      disabled={!hasStock || isExpired || itemInCart || atMaxQuantity}
+      title={
+        !hasStock ? 'Out of stock' :
+        isExpired ? 'Expired' :
+        atMaxQuantity ? 'Maximum quantity reached' :
+        itemInCart ? 'Already in cart' : 'Add to cart'
+      }
+    >
+      {!hasStock ? 'No Stock' : 
+        isExpired ? 'Expired' :
+        atMaxQuantity ? 'Max Qty' :
+        itemInCart ? 'In Cart' : 'Add'}
+    </button>
+  );
 }

@@ -39,6 +39,7 @@ class MedicineResource extends JsonResource
                 'reorder_quantity' => $this->reorder_quantity,
                 'provider_id' => $this->provider_id,
                 'provider' => $this->provider,
+                'stocks' => $this->stocks,
                 // 'orders' => $this->orders,
                 'created_at' => $this->created_at,
             ];
@@ -53,6 +54,7 @@ class MedicineResource extends JsonResource
                 'formulation' => $this->formulation,
                 'price' => $this->price,
                 'image' => $this->image ? url(Storage::url($this->image)) : null,
+                'stocks' => $this->stocks,
             ];
         }
 

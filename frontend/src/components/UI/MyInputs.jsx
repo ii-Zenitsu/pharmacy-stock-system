@@ -42,15 +42,17 @@ export function SearchSelectInput({
   label = "",
   className = "",
   options = [],
+  scanner = null,
   ...props
 }) {
   return (
     <label
-      className={`input w-full transition-colors duration-300 ${!editing && "cursor-text! bg-base-200 text-base-content! border-neutral!"} ${className}`}
+      className={`input w-full transition-colors duration-300 pr-1 ${!editing && "cursor-text! bg-base-200 text-base-content! border-neutral!"} ${className}`}
     >
       {label && <span className="label font-bold w-44">{label}</span>}
       <Select
         showSearch
+        style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
         placeholder="Search and select..."
         className="w-full"
         value={value}
@@ -60,6 +62,13 @@ export function SearchSelectInput({
         optionFilterProp="label"
         {...props}
       />
+      {editing && scanner &&
+        <button className="btn btn-accent btn-sm btn-circle" onClick={() => {
+          scanner(true);
+        }}>
+          <ScanBarcode size={16} />
+        </button>
+      }
     </label>
   );
 }

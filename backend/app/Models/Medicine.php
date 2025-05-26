@@ -34,6 +34,11 @@ class Medicine extends Model
         return $this->belongsTo(Provider::class);
     }
 
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);

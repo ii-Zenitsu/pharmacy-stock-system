@@ -22,6 +22,8 @@ class Stock extends Model
         'expiration_date' => 'date:Y-m-d',
     ];
 
+    protected $with = ['location'];
+
     public function medicine()
     {
         return $this->belongsTo(Medicine::class);
