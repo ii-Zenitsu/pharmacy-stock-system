@@ -7,8 +7,8 @@ export default class Orders {
       const res = await axios({ method, url, data });
       return {
         success: true,
-        data: res.data.data, // Assuming backend wraps data in a 'data' object
-        message: res.data.message, // Assuming backend sends a message
+        data: res.data.data,
+        message: res.data.message,
       };
     } catch (error) {
       console.log(error);
