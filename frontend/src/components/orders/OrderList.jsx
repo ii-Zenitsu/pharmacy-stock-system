@@ -5,10 +5,10 @@ import Orders from "../../assets/api/Orders";
 import { fetchInitialData } from "../Redux/fetchData";
 import { addOrder } from "../Redux/slices/OrderSlice";
 
-import { message, Popconfirm, Table, Spin, Select } from "antd";
+import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User, Package } from "lucide-react";
 import Fuse from "fuse.js";
-import { TextInput } from "../UI/MyInputs";
+import { TextInput, SelectInput, SearchSelectInput } from "../UI/MyInputs";
 
 export default function OrderList() {
   const dispatch = useDispatch();
@@ -53,6 +53,7 @@ export default function OrderList() {
   const handleCreateOrder = async (values) => {
     try {
       if (!values) return;
+      console.log("Creating order with values:", values);
       
       const res = await Orders.Create(values);
       if (res.success) {
@@ -91,10 +92,10 @@ export default function OrderList() {
     }
   };
 
-  const handleProviderChange = (providerId) => {
-    const provider = providers.find(p => p.id === providerId);
+  const handleProviderChange = (value) => {
+    const provider = providers.find(p => p.id == value);
     setSelectedProvider(provider);
-    setNewOrder(prev => ({ ...prev, provider_id: providerId, medicine_id: "" }));
+    setNewOrder(prev => ({ ...prev, provider_id: value, medicine_id: 0 }));
     setAvailableMedicines(provider?.medicines || []);
   };
 
@@ -144,8 +145,7 @@ export default function OrderList() {
   ];
 
   return (
-    <>
-      <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4"></div>
+    <div className="border-sh rounded-xl overflow-hidden mx-1 md:mx-4 h-fit my-4">
       {contextHolder}
       <div className="flex flex-wrap justify-between items-center gap-6 my-4 px-3">
         <div className="flex gap-4">
@@ -234,7 +234,7 @@ export default function OrderList() {
                 />
                 <TextInput
                   label="Provider"
-                  value={order.provider?.name || "N/A"}
+                  value={order.provider?.name || console.log(order) || "N/A"}
                   disabled={true}
                   editing={false}
                   className="capitalize"
@@ -329,63 +329,38 @@ export default function OrderList() {
 
               <div className="flex gap-2 text-2xl items-center font-semibold"><Package /><span>New Order Information</span></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Provider <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    placeholder="Select a provider"
-                    value={newOrder.provider_id || undefined}
-                    onChange={handleProviderChange}
-                    className="w-full"
-                    size="large"
-                    showSearch
-                    filterOption={(input, option) =>
-                      option.children.toLowerCase().includes(input.toLowerCase())
-                    }
-                  >
-                    {providers.map((provider) => (
-                      <Select.Option key={provider.id} value={provider.id}>
-                        {provider.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                  {errors.provider_id && (
-                    <p className="text-red-500 text-sm">{errors.provider_id[0]}</p>
-                  )}
-                </div>
+                <SearchSelectInput
+                  label="Provider"
+                  value={Number(newOrder.provider_id)}
+                  onChange={handleProviderChange}
+                  editing={true}
+                  className={errors?.provider_id ? "select-error border-2" : ""}
+                  options={[
+                    { value: 0, label: "Select a provider" },
+                    ...providers.map(provider => ({ value: provider.id, label: provider.name}))
+                  ]}
+                  name="provider_id"
+                />
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Medicine <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    placeholder={selectedProvider ? "Select a medicine" : "Select a provider first"}
-                    value={newOrder.medicine_id || undefined}
-                    onChange={(value) => setNewOrder(prev => ({ ...prev, medicine_id: value }))}
-                    className="w-full"
-                    size="large"
-                    disabled={!selectedProvider || availableMedicines.length === 0}
-                    showSearch
-                    filterOption={(input, option) =>
-                      option.children.toLowerCase().includes(input.toLowerCase())
-                    }
-                  >
-                    {availableMedicines.map((medicine) => (
-                      <Select.Option key={medicine.id} value={medicine.id}>
-                        {medicine.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                  {errors.medicine_id && (
-                    <p className="text-red-500 text-sm">{errors.medicine_id[0]}</p>
-                  )}
-                  {selectedProvider && availableMedicines.length === 0 && (
-                    <p className="text-amber-600 text-sm">
-                      This provider has no medicines available
-                    </p>
-                  )}
-                </div>
+                <SearchSelectInput
+                  label="Medicine"
+                  value={Number(newOrder.medicine_id)}
+                  onChange={value => setNewOrder(prev => ({ ...prev, medicine_id: value }))}
+                  editing={true}
+                  disabled={!selectedProvider || availableMedicines.length === 0}
+                  className={errors?.medicine_id ? "select-error border-2" : ""}
+                  options={[
+                    { 
+                      value: 0, 
+                      label: selectedProvider ? "Select a medicine" : "Select a provider first" 
+                    },
+                    ...availableMedicines.map(medicine => ({
+                      value: medicine.id,
+                      label: medicine.name
+                    }))
+                  ]}
+                  name="medicine_id"
+                />
 
                 <TextInput
                   label="Quantity"
@@ -403,6 +378,6 @@ export default function OrderList() {
           </div>
         )}
       </aside>
-    </>
+    </div>
   );
 }

@@ -94,6 +94,7 @@ export default class Auth {
       return res.data;
       
     } catch (error) {
+      console.error('Login error:', error);
       if (!isAxiosError(error)) {
         return defaultError
       }

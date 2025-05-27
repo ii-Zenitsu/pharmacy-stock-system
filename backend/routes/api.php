@@ -13,6 +13,7 @@ use App\Http\Controllers\StockController; // Added import
 use App\Http\Middleware\isEmployeMiddleWare;
 use App\Http\Middleware\AlreadyLoggedInMiddleware;
 use App\Http\Middleware\IsAdminEmployeeMiddleware;
+use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::middleware(AlreadyLoggedInMiddleware::class)->group(function(){
@@ -29,10 +30,10 @@ Route::get('/email/verify', function () {
     return response()->json(['message' => 'Email verification required.'], 403);
 })->middleware(['auth:sanctum'])->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return response()->json(['message' => 'Email verified successfully.']);
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//     $request->fulfill();
+//     return response()->json(['message' => 'Email verified successfully.']);
+// })->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
 
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
@@ -70,3 +71,36 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
 // Public routes
 Route::get("/public/medicines", [MedicineController::class, 'index']);
 Route::get("/public/medicines/{id}", [MedicineController::class, 'show']);
+// order email preview route
+Route::get('/email-preview/order-notification', function () {
+    $provider = (object) ['name' => 'Provider Ltd.'];
+    $medicine = (object) ['name' => 'Paracetamol', 'formulation' => 'tablet'];
+    $quantity = 30;
+    $orderDate = now();
+    
+    return view('emails.order-notification', compact('provider', 'medicine', 'quantity', 'orderDate'));
+});
+
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+    // Find the user by ID
+    $user = User::findOrFail($request->route('id'));
+    
+    // Check if the hash is valid
+    if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+        return redirect('http://localhost:5173/sign?error=invalid_verification_link');
+    }
+    
+    // Check if the URL has expired
+    if ($request->hasValidSignature() === false) {
+        return redirect('http://localhost:5173/sign?error=verification_link_expired');
+    }
+    
+    // Mark email as verified
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+    
+    // Redirect to frontend with success
+    return redirect('http://localhost:5173/sign?verified=1');
+})->name('verification.verify');

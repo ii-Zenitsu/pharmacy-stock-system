@@ -17,8 +17,8 @@ class OrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'medicine' => new MedicineResource($this->whenLoaded('medicine')),
-            'provider' => new ProviderResource($this->whenLoaded('provider')),
+            'medicine' => $this->medicine,
+            'provider' => $this->provider,
             'quantity' => $this->quantity,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
