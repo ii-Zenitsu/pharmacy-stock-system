@@ -89,7 +89,7 @@ class StockController extends Controller
     public function adjustBatchesQuantity(Request $request)
     {
         $validated = $request->validate([
-            '*.id' => 'required|exists:stocks,id',
+            '*.id' => 'required|exists:medicine_location,id',
             '*.quantity' => 'required|integer|min:1',
         ]);
         $updatedItems = [];

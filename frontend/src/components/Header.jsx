@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Minus, Plus, ShoppingBag, X } from 'lucide-react';
+import { CircleAlert, LogOut, Menu, Minus, Plus, ShoppingBag, TriangleAlert, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Auth from '../assets/api/Auth';
 import { logout } from './Redux/slices/AuthSlice';
@@ -8,7 +8,9 @@ import { Outlet } from 'react-router-dom';
 import { motion, useAnimation } from "framer-motion";
 import logo from "../assets/images/icon.png";
 import { useCart } from './hooks/useCart';
-import { Popover } from 'antd';
+import { message, Popconfirm, Popover } from 'antd';
+import Stocks from '../assets/api/Stocks';
+import { adjustBatchesQuantity } from './Redux/slices/StockSlice';
 
 
 export default function Header() {
@@ -16,6 +18,7 @@ export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
     const controls = useAnimation();
+    const { clear } = useCart();
     
     const { user, token, isLoading } = useSelector((state) => state.auth);
     const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +58,7 @@ export default function Header() {
       if (res.success) {
         dispatch(logout());
         navigate("/");
+        clear();
       }
     };
 
@@ -83,15 +87,6 @@ export default function Header() {
                 <div data-path="/profile" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/profile">Profile</NavLink></div>
               </>
             )}
-            {/* {user?.role === "admin" && (
-              <>
-                <div data-path="/menu" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/menu">Menu</NavLink></div>
-                <div data-path="/profile" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/medicines">Medicines</NavLink></div>
-              </>
-            )}
-            {user?.role === "employe" && (
-              <div data-path="/medicines" onClick={e => switchTab(e.target)}><NavLink className={navLinkClass} to="/medicines">Medicines</NavLink></div>
-            )} */}
             <motion.div className="absolute z-[-1] -top-1 rounded-full left-0 h-8 bg-primary" animate={controls} initial={{ x: 0, width: 0 }} />
           </div>
             
@@ -101,21 +96,9 @@ export default function Header() {
           ) : token ? (
             <>
                 <Cart />
-                <button className='btn btn-sm btn-neutral mx-2 hover:bg-base-100 hover:text-neutral not-sm:hidden' onClick={logoutUser}>Logout</button>
-                {/* <div className="dropdown dropdown-end hidden md:inline-block">
-                  <div className='flex items-center gap-1'>
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar hover:scale-105 transition-transform duration-100">
-                  <div className={`hover:ring ring-offset-2 ring-neutral ring-offset-base-100 w-10 rounded-full ${color} flex! items-center justify-center text-lg font-bold`}>
-                  {user.first_name[0]}{user.last_name[0]}
-                  </div>
-                  </div>
-                  </div>
-                  <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                  <li className='text-center font-semibold mb-2'>Welcome {user.first_name} ({user.role})</li>
-                  <li><button>Profile</button></li>
-                  <li><button onClick={logoutUser}>Logout</button></li>
-                  </ul>
-                  </div> */}
+                <Popconfirm title="Are you sure you want to logout?" onConfirm={logoutUser} icon={null}>
+                  <button className='btn btn-sm btn-neutral mx-2 hover:bg-base-100 hover:text-neutral not-sm:hidden'>Logout</button>
+                </Popconfirm>
               </>
             ) : (
               <NavLink
@@ -171,6 +154,24 @@ export default function Header() {
 function Cart() {
   const { cartItems, totalItems, totalPrice, totalItemPrice, loading, error, removeItem, updateQuantity, increment, decrement, clear, isAtMaxQuantity } = useCart();
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const checkout = async () => {
+      try {
+        const response = await Stocks.AdjustBatchesQuantity(cartItems);
+        if (response.success) {
+          dispatch(adjustBatchesQuantity(response.data));
+          messageApi.success("Checkout successful!");
+          clear();
+          setOpen(false);
+        } else {
+          messageApi.error(response.message);
+        }
+      } catch (error) {
+        messageApi.error("Checkout failed. Please try again.");
+      }
+    };
 
   const handleQuantityChange = (id, quantity) => {
     const numQuantity = parseInt(quantity);
@@ -262,7 +263,7 @@ function Cart() {
           <div className="p-3 border-t rounded-b-lg">
             <div className="flex justify-between items-center font-semibold">
               <span className='self-end'>Total:<span className="text-lg text-secondary align- ml-2">{totalPrice.toFixed(2)} MAD</span></span>
-              <button className="btn btn-primary btn-sm">Checkout</button>
+              <button className="btn btn-primary btn-sm" onClick={checkout}>Checkout</button>
             </div>
           </div>
         </>
@@ -278,7 +279,7 @@ function Cart() {
       placement="bottomRight"
       content={content}
       color='#e1eebc'
-    >
+    >{contextHolder}
       <button className="btn btn-ghost btn-accent btn-circle hover:ring ring-offset-2 ring-neutral ring-offset-base-100 hover:scale-105 transition-transform duration-100 relative">
         <ShoppingBag />
         {totalItems > 0 && (

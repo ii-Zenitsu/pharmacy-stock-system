@@ -26,6 +26,7 @@ function AdminList({user}) {
   const dispatch = useDispatch();
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
+  const { stockItems } = useSelector((state) => state.stock);
   const [medicine, setMedicine] = useState(null);
   const [editedMedicine, setEditedMedicine] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -262,6 +263,8 @@ const setScanResult = (bar_code) => {
       }
     }
   }
+
+  const getStock = (id) => stockItems.filter(item => item.medicine_id === id)
 
   const stockColumns = [
     {
@@ -597,7 +600,7 @@ const setScanResult = (bar_code) => {
                   
                 </div>
                 <ConfigProvider theme={token}>
-                  {!editing && <Table dataSource={editedMedicine?.stocks} className="sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />}
+                  {!editing && getStock(editedMedicine?.id).length > 0 && <Table dataSource={getStock(editedMedicine?.id)} className="sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />}
                 </ConfigProvider>
               </div>
             </div>
@@ -786,6 +789,7 @@ const setScanResult = (bar_code) => {
 function EmployeList({ user }) {
   const dispatch = useDispatch();
   const { medicines } = useSelector((state) => state.medicines);
+  const { stockItems } = useSelector((state) => state.stock);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 10);
@@ -890,6 +894,8 @@ function EmployeList({ user }) {
       }
     }
   }
+
+  const getStock = (id) => stockItems.filter(item => item.medicine_id === id)
 
   const stockColumns = [
     {
@@ -1019,12 +1025,14 @@ function EmployeList({ user }) {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-4">
               <div className="flex flex-col sm:w-1/3 gap-1.5">
-                <div className="flex justify-center items-center p-2 h-52 sm:h-full border border-neutral/50 bg-base-300 rounded-lg">
-                  <img
-                    src={selectedMedicine.image || defaultPic}
-                    alt={selectedMedicine.name}
-                    className="max-h-full max-w-full object-contain rounded"
-                    onError={(e) => { e.target.onerror = null; e.target.src = defaultPic; }}
+                <div className="flex justify-center items-center p-2 h-fit border border-neutral/50 bg-base-300 rounded-lg">
+                  <FileInput
+                    name="image"
+                    editing={false}
+                    disabled={true}
+                    existingImageUrl={selectedMedicine.image || null}
+                    defaultImage={selectedMedicine.image ? null : defaultPic}
+                    altText={selectedMedicine.name}
                   />
                 </div>
               </div>
@@ -1038,7 +1046,7 @@ function EmployeList({ user }) {
                   <TextInput label="Price" value={`${selectedMedicine.price} MAD`} editing={false} disabled={true} />
                 </div>
                 <ConfigProvider theme={token}>
-                  <Table dataSource={selectedMedicine?.stocks} className="sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />
+                  {getStock(selectedMedicine?.id).length > 0 && <Table dataSource={getStock(selectedMedicine?.id)} className="my-4 sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />}
                 </ConfigProvider>
               </div>
             </div>
