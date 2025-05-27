@@ -18,6 +18,7 @@ import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
+import OrderList from './components/orders/OrderList';
 import Dashboard from './components/admin/dashboard';
 import { fetchInitialData } from './components/Redux/fetchData';
 import CartExample from './components/cart/CartExample';
@@ -105,7 +106,7 @@ function App() {
                   </Route>
                   {/* Admin routes */}
                   <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                    <Route path="orders" element={<h1>Orders</h1>} />
+                    <Route path="orders" element={<OrderList />} />
                     <Route path="providers" element={<ProvidersList />} />
                     <Route path="users" element={<UsersList />} />
                     <Route path="logs" element={<h1>Logs</h1>} />

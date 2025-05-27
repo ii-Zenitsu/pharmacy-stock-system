@@ -1,10 +1,12 @@
-import { useSelector } from "react-redux";
 import Users from "../../assets/api/Users";
+import Orders from "../../assets/api/Orders";
 import Stocks from "../../assets/api/Stocks";
 import Medicines from "../../assets/api/Medicines";
 import Providers from "../../assets/api/Providers";
 import Locations from "../../assets/api/Locations";
+
 import { setUsers } from "./slices/UserSlice";
+import { setOrders } from "./slices/OrderSlice"; 
 import { setMedicines } from "./slices/MedicineSlice";
 import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
@@ -22,6 +24,7 @@ export const fetchInitialData = async (dispatch, user) => {
   };
   
   if (user?.role === "admin") {
+    
     promises.push(
       Providers.GetAll()
         .then(res => handleResponse(res, setProviders, "Providers"))
@@ -31,6 +34,11 @@ export const fetchInitialData = async (dispatch, user) => {
       Users.GetAll()
       .then(res => handleResponse(res, setUsers, "Users"))
       .catch(error => { console.error("Error fetching users:", error)})
+    );
+      promises.push(
+      Orders.GetAll()
+        .then(res => handleResponse(res, setOrders, "Orders"))
+        .catch(error => { console.error("Error fetching orders:", error) }) // ⬅️ ajout ici
     );
   }
   if (user?.role === "admin" || user?.role === "employe") {
