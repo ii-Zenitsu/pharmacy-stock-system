@@ -104,15 +104,14 @@ class StockController extends Controller
             $stock->save();
             $stock->load(['medicine', 'location']);
             if ($stock->medicine->is_low_stock) {
-                $existingNotification = Notification::where('action', $stock->id)
-                    ->where('is_read', false)->where('title', 'Low Stock')
-                    ->first();
+                $existingNotification = Notification::where('action', $stock->medicine->id)
+                    ->where('title', 'Low Stock')->first();
                 
                 if (!$existingNotification) {
                     Notification::create([
                         'title' => 'Low Stock',
-                        'message' => 'The stock for ' . $stock->medicine->name . ' at ' . $stock->location->name . ' is low.',
-                        'is_read' => false,
+                        'medicine' => $stock->medicine->name,
+                        'location' => $stock->location->name,
                         'action' => $stock->medicine->id,
                     ]);
                 }

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('message');
-            $table->boolean('is_read')->default(false);
+            $table->string('medicine')->nullable();
+            $table->string('location')->nullable();
             $table->string('action')->nullable();
             $table->timestamps();
         });

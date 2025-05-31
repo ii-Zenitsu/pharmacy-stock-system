@@ -241,6 +241,14 @@ const setScanResult = (bar_code) => {
       sorter: (a, b) => a.price - b.price,
     },
     {
+      title: "Quantity",
+      dataIndex: "total_quantity",
+      key: "total_quantity",
+      align: "center",
+      render: (quantity) => `${quantity} units`,
+      sorter: (a, b) => a.total_quantity - b.total_quantity,
+    },
+    {
       title: <div className="capitalize">Details</div>,
       key: "details",
       align: "center",
@@ -395,9 +403,9 @@ const setScanResult = (bar_code) => {
         />
       </div>
       <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${medicine ? "opacity-100 visible" : "opacity-0 invisible"}`} />
-      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-2 sm:p-6 transform transition-transform duration-300 ease-in ${medicine ? "translate-x-0" : "translate-x-full"}`}>
+      <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-2 sm:p-3 transform transition-transform duration-300 ease-in ${medicine ? "translate-x-0" : "translate-x-full"}`}>
          {medicine && (
-          <div className="flex flex-col bg-base-200 w-full h-full gap-4 mx-auto shadow-2xl p-2 sm:p-6 rounded-2xl">
+          <div className="flex flex-col bg-base-200 w-full min-h-full gap-4 mx-auto shadow-2xl p-2 sm:p-6 rounded-2xl">
             <div className="flex justify-between items-center">
               {!editing ? (
                 <>
@@ -874,6 +882,14 @@ function EmployeList({ user }) {
       sorter: (a, b) => a.price - b.price,
     },
     {
+      title: "Quantity",
+      dataIndex: "total_quantity",
+      key: "total_quantity",
+      align: "center",
+      render: (quantity) => `${quantity} units`,
+      sorter: (a, b) => a.total_quantity - b.total_quantity,
+    },
+    {
       title: "Details",
       key: "details",
       align: "center",
@@ -1020,7 +1036,7 @@ function EmployeList({ user }) {
       <div className={`fixed top-0 inset-0 z-[5] bg-black/50 transition-opacity duration-300 ease-in ${selectedMedicine ? "opacity-100 visible" : "opacity-0 invisible"}`} />
       <aside className={`fixed top-0 z-[6] left-0 w-full h-full overflow-y-auto bg-base-100 shadow-lg p-2 sm:p-6 transform transition-transform duration-300 ease-in ${selectedMedicine ? "translate-x-0" : "translate-x-full"}`}>
         {selectedMedicine && (
-          <div className="flex flex-col bg-base-200 w-full h-full gap-4 mx-auto shadow-2xl p-2 sm:p-6 rounded-2xl">
+          <div className="flex flex-col bg-base-200 w-full min-h-full gap-4 mx-auto shadow-2xl p-2 sm:p-6 rounded-2xl">
             <div className="flex justify-start items-center">
               <button className="btn btn-secondary btn-sm" onClick={goBack}>
                 <ArrowLeft size={16} /> Back

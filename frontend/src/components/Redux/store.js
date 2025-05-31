@@ -7,6 +7,7 @@ import ProvidersReducer from './slices/ProviderSlice';
 import OrdersReducer from './slices/OrderSlice';
 import LocationsReducer from './slices/LocationSlice';
 import CartReducer from './slices/CartSlice';
+import NotificationReducer from './slices/NotificationSlice';
 
 export const store = configureStore({
     reducer:{
@@ -18,5 +19,6 @@ export const store = configureStore({
         medicines: MedicinesReducer,
         providers: ProvidersReducer,
         locations: LocationsReducer,
+        notifications: NotificationReducer,
     }
 })

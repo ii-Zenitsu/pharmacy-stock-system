@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -49,6 +50,8 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
         Route::apiResource("medicines",MedicineController::class)->except(['index', 'show']);
         Route::apiResource("locations",LocationController::class)->except(['index', 'show']);
         Route::apiResource("providers",ProviderController::class);
+        Route::apiResource("notifications",NotificationController::class);
+        Route::delete('/notifications/all', [NotificationController::class, 'deleteAll']);
         Route::apiResource("orders",OrderController::class);
         Route::put("/stock/{id}", [StockController::class, 'update']);
         Route::delete("/stock/{id}", [StockController::class, 'destroy']);

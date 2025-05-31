@@ -172,7 +172,7 @@ useEffect(() => {
           </svg>
           <input type="search" className="grow" onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, description" />
         </label>
-        {user?.role === 'admin' && <button className="btn btn-error btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
+        {user?.role === 'admin' && <button className="btn btn-primary btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
           <Plus size={16} /> Add Location
         </button>}
       </div>

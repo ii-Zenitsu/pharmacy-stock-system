@@ -4,6 +4,7 @@ import Stocks from "../../assets/api/Stocks";
 import Medicines from "../../assets/api/Medicines";
 import Providers from "../../assets/api/Providers";
 import Locations from "../../assets/api/Locations";
+import Notifications from "../../assets/api/Notifications";
 
 import { setUsers } from "./slices/UserSlice";
 import { setOrders } from "./slices/OrderSlice"; 
@@ -11,6 +12,7 @@ import { setMedicines } from "./slices/MedicineSlice";
 import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
 import { setStockItems } from "./slices/StockSlice";
+import { setNotifications } from "./slices/NotificationSlice";
 
 
 export const fetchInitialData = async (dispatch, user) => {
@@ -22,8 +24,7 @@ export const fetchInitialData = async (dispatch, user) => {
       console.log(`Failed to fetch data from ${endpoint}: ${res.message}`);
     }
   };
-  
-  if (user?.email_verified_at && user?.role === "admin") {
+    if (user?.email_verified_at && user?.role === "admin") {
     
     promises.push(
       Providers.GetAll()
@@ -39,6 +40,11 @@ export const fetchInitialData = async (dispatch, user) => {
       Orders.GetAll()
         .then(res => handleResponse(res, setOrders, "Orders"))
         .catch(error => { console.error("Error fetching orders:", error)})
+    );
+    promises.push(
+      Notifications.GetAll()
+        .then(res => handleResponse(res, setNotifications, "Notifications"))
+        .catch(error => { console.error("Error fetching notifications:", error)})
     );
   }
   if (user?.email_verified_at && (user?.role === "admin" || user?.role === "employe")) {

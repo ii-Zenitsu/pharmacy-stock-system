@@ -42,7 +42,7 @@ export default function OrderList() {
 
  useEffect(() => {
     const fetchData = async () => {
-    if (!orders.length) {
+    if (!orders) {
       await fetchInitialData(dispatch, user);
     }
     setLoading(false);

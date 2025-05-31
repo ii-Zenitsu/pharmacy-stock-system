@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { CircleAlert, LogOut, Menu, Minus, Plus, ShoppingBag, TriangleAlert, X } from 'lucide-react';
+import { Bell, CircleAlert, Menu, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Auth from '../assets/api/Auth';
 import { logout } from './Redux/slices/AuthSlice';
@@ -11,6 +11,7 @@ import { useCart } from './hooks/useCart';
 import { message, Popconfirm, Popover } from 'antd';
 import Stocks from '../assets/api/Stocks';
 import { adjustBatchesQuantity } from './Redux/slices/StockSlice';
+import { useNotification } from './hooks/useNotification';
 
 
 export default function Header() {
@@ -95,10 +96,11 @@ export default function Header() {
             <span className="loading loading-spinner loading-md text-neutral" />
           ) : token ? (
             <>
-                <Cart />
-                <Popconfirm title="Are you sure you want to logout?" onConfirm={logoutUser} icon={null}>
-                  <button className='btn btn-sm btn-neutral mx-2 hover:bg-base-100 hover:text-neutral not-sm:hidden'>Logout</button>
-                </Popconfirm>
+              {user.role === "admin" && <Notification />}
+              <Cart />
+              <Popconfirm title="Are you sure you want to logout?" onConfirm={logoutUser} icon={null}>
+                <button className='btn btn-sm btn-neutral mx-2 hover:bg-base-100 hover:text-neutral not-sm:hidden'>Logout</button>
+              </Popconfirm>
               </>
             ) : (
               <NavLink
@@ -182,25 +184,10 @@ function Cart() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-4 text-center">
-        <span className="loading loading-spinner loading-sm"></span>
-        <p className="text-sm mt-2">Loading cart...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 text-center text-error">
-        <p className="text-sm">Error: {error}</p>
-      </div>
-    );
-  }
-  
-
-  const content = 
+  const content =
+  loading ? (<div className="p-4 text-center"><span className="loading loading-spinner loading-sm"></span><p className="text-sm mt-2">Loading cart...</p></div>
+  ) : error ? (<div className="p-4 text-center text-error"><p className="text-sm">Error: {error}</p></div>
+  ) : (
     <div className="w-80 max-h-96 overflow-y-auto">
       <div className="flex items-center justify-between p-3 border-b">
         <h2 className="font-semibold">Your Cart ({totalItems})</h2>
@@ -254,7 +241,7 @@ function Cart() {
                     onClick={() => removeItem(cartItem.id)}
                     className="btn btn-circle btn-xs btn-error ml-1"
                   >
-                    <X size={10} />
+                    <X size={20} />
                   </button>
                 </div>
               </div>
@@ -269,6 +256,7 @@ function Cart() {
         </>
       )}
     </div>
+  )
 
 
   return (
@@ -284,6 +272,99 @@ function Cart() {
         <ShoppingBag />
         {totalItems > 0 && (
           <span className="badge badge-sm badge-primary absolute -top-1 -right-2">{totalItems}</span>
+        )}
+      </button>
+    </Popover>
+  );
+}
+
+function Notification(){
+  const { notifications, loading, error, fetchAll, deleteOne, clearAll, getCount } = useNotification();
+  const [open, setOpen] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+      fetchAll();
+  }, []);
+
+  const handleDeleteOne = async (id) => {
+    const result = await deleteOne(id);
+    if (result.success) {
+      messageApi.success("Notification deleted successfully!");
+    } else {
+      messageApi.error(result.message || "Failed to delete notification");
+    }
+  };
+
+  const handleClearAll = async () => {
+    const result = await clearAll();
+    if (result.success) {
+      messageApi.success("All notifications cleared!");
+    } else {
+      messageApi.error(result.message || "Failed to clear notifications");
+    }
+  };
+
+  const content = loading ? (
+    <div className="p-4 text-center"><span className="loading loading-spinner loading-sm"></span><p className="text-sm mt-2">Loading notifications...</p></div>
+  ) : error ? (
+    <div className="p-4 text-center text-error"><p className="text-sm">Error: {error}</p></div>
+  ) : (
+    <div className="w-80 max-h-96 overflow-y-auto">
+      <div className="flex items-center justify-between p-3 border-b">
+        <h2 className="font-semibold">Notifications ({getCount()})</h2>
+        {notifications.length > 0 && (
+          <button
+            onClick={handleClearAll}
+            className="btn btn-error btn-xs"
+          >
+            Clear All
+          </button>
+        )}
+      </div>
+      
+      {notifications.length === 0 ? (
+        <div className="p-6 text-center text-gray-500">
+          <Bell className="mx-auto mb-2 opacity-50" size={32} />
+          <p className="text-sm">No notifications</p>
+        </div>
+      ) : (
+        <div className="p-2 space-y-2">
+          {notifications.map((n) => {
+            const message = `${n.title} at ${n.location}`
+            const date = `${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}`
+            return (
+            <div key={n.id} className="flex items-center justify-between p-1.5 border rounded">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium">{n.medicine}<span className='badge badge-warning badge-xs font-extrabold ml-2 px-1'>{n.title}</span></h3>
+                <p className="text-xs text-gray-600 mt-1" title={`${message} for ${n.medicine} on ${date}`}>{message}</p>
+                <p className="text-xs text-gray-400 mt-1">{date}</p>
+              </div>
+              <button className="btn btn-circle btn-xs btn-error ml-2" onClick={() => handleDeleteOne(n.id)}>
+                <X size={20} />
+              </button>
+            </div>
+          )}
+          )}
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      trigger="click"
+      placement="bottomRight"
+      content={content}
+      color='#e1eebc'
+    >
+      {contextHolder}
+      <button className="btn btn-ghost btn-warning btn-circle hover:ring ring-offset-2 ring-neutral ring-offset-base-100 hover:scale-105 transition-transform duration-100 relative">
+        <Bell />
+        {getCount() > 0 && (
+          <span className="badge badge-sm badge-warning absolute -top-1 -right-2">{getCount()}</span>
         )}
       </button>
     </Popover>
