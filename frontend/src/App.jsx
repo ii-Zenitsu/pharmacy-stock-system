@@ -6,13 +6,14 @@ import '@ant-design/v5-patch-for-react-19';
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
-import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
+import { LoggedOut, ProtectedRoute, EmailVerifiedRoute, RedirectByRole } from './lib/ProtectedRoute'
 
 import Auth from './assets/api/Auth'
 import Home from './components/Home';
 import Menu from './components/Menu';
 import Header from './components/Header'
 import SignTabs from './components/login/Signup'
+import EmailVerification from './components/EmailVerification'
 import UsersList from './components/users/UsersList';
 import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
@@ -85,7 +86,7 @@ function App() {
                 }
               }
             }}
-          >
+            >
             <Routes>
               <Route path='/' element={<Header />}>
                 <Route path='/' element={<Home/>} />
@@ -94,22 +95,25 @@ function App() {
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
+                <Route path="verify-email" element={<EmailVerification />} />
 
-                <Route path='menu' element={<Menu />}>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  {/* Admin and Employee routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="medicines" element={<MedicinesList />} />
-                    <Route path="stock" element={<StockList />} />
-                    <Route path="locations" element={<LocationsList />} />
-                  </Route>
-                  {/* Admin routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                    <Route path="orders" element={<OrderList />} />
-                    <Route path="providers" element={<ProvidersList />} />
-                    <Route path="users" element={<UsersList />} />
-                    <Route path="logs" element={<h1>Logs</h1>} />
+                <Route element={<EmailVerifiedRoute />}>
+                  <Route path='menu' element={<Menu />}>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    {/* Admin and Employee routes */}
+                    <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="medicines" element={<MedicinesList />} />
+                      <Route path="stock" element={<StockList />} />
+                      <Route path="locations" element={<LocationsList />} />
+                    </Route>
+                    {/* Admin routes */}
+                    <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
+                      <Route path="orders" element={<OrderList />} />
+                      <Route path="providers" element={<ProvidersList />} />
+                      <Route path="users" element={<UsersList />} />
+                      <Route path="logs" element={<h1>Logs</h1>} />
+                    </Route>
                   </Route>
                 </Route>
               </Route>

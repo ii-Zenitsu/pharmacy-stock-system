@@ -33,7 +33,7 @@ function AdminList({user}) {
   const [adding, setAdding] = useState(false);
   const [preview, setPreview] = useState(null);
   const [openScanner, setOpenScanner] = useState(false);
-  const [newMedicine, setNewMedicine] = useState({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 0, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
+  const [newMedicine, setNewMedicine] = useState({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 10, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
@@ -122,7 +122,7 @@ function AdminList({user}) {
     setMedicine(null);
     setEditing(false);
     setAdding(false);
-    setNewMedicine({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 0, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
+    setNewMedicine({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 10, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
     setEditedMedicine(null);
     setErrors({});
     setPreview(null);
@@ -482,6 +482,7 @@ const setScanResult = (bar_code) => {
                     name="name"
                     className={errors?.name ? "input-error border-2" : ""}
                   />
+
                   <TextInput
                     label="Bar Code"
                     value={editedMedicine?.bar_code}
@@ -532,6 +533,7 @@ const setScanResult = (bar_code) => {
                       { value: "ointment", label: "Ointment" },
                     ]}
                     />
+
                   <TextInput
                     label="Price"
                     type="number"
@@ -545,9 +547,9 @@ const setScanResult = (bar_code) => {
                   />
 
                   <TextInput
-                    label="Quantity"
+                    label="Total Quantity"
                     type="number"
-                    value={editedMedicine?.quantity}
+                    value={editedMedicine?.total_quantity}
                     disabled={true}
                     editing={false}
                   />
@@ -1045,6 +1047,7 @@ function EmployeList({ user }) {
                   <TextInput label="Dosage" value={selectedMedicine.dosage?.replace("-", " ")} editing={false} disabled={true} />
                   <TextInput label="Formulation" value={selectedMedicine.formulation} editing={false} disabled={true} />
                   <TextInput label="Price" value={`${selectedMedicine.price} MAD`} editing={false} disabled={true} />
+                  <TextInput label="Total Quantity" value={selectedMedicine.total_quantity} disabled={true} editing={false} />
                 </div>
                 <ConfigProvider theme={token}>
                   {getStock(selectedMedicine?.id).length > 0 && <Table dataSource={getStock(selectedMedicine?.id)} className="my-4 sm:mt-6" bordered={true} size="small" columns={stockColumns} rowKey="id" pagination={false} />}

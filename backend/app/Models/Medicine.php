@@ -29,6 +29,10 @@ class Medicine extends Model
         'reorder_quantity' => 'integer',
     ];
 
+    protected $attributes = [
+        'alert_threshold' => 10,
+    ];
+
     public function provider()
     {
         return $this->belongsTo(Provider::class);

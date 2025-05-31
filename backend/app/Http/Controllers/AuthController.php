@@ -49,7 +49,8 @@ class AuthController extends Controller
                     'last_name' => $user->last_name,
                     'role' => $user->role,
                     'birth_date' => $user->birth_date,
-                    'email' => $user->email
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at
                 ],
                 'token' => $token->plainTextToken,
                 'expires' => $expires,
@@ -82,6 +83,7 @@ class AuthController extends Controller
                 'role' => $user->role,
                 'birth_date' => $user->birth_date,
                 'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at
             ],
         ], 200);
     }

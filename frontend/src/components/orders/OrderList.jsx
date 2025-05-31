@@ -6,7 +6,7 @@ import { fetchInitialData } from "../Redux/fetchData";
 import { addOrder } from "../Redux/slices/OrderSlice";
 
 import { message, Popconfirm, Table, Spin } from "antd";
-import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User, Package } from "lucide-react";
+import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User, Package, SendHorizonal } from "lucide-react";
 import Fuse from "fuse.js";
 import { TextInput, SelectInput, SearchSelectInput } from "../UI/MyInputs";
 
@@ -40,20 +40,19 @@ export default function OrderList() {
     }
   }, [order, adding]);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchData = async () => {
-      if (user) {
-        await fetchInitialData(dispatch, user);
-        setLoading(false);
-      }
-    };
-    fetchData();
+    if (!orders.length) {
+      await fetchInitialData(dispatch, user);
+    }
+    setLoading(false);
+  };
+  fetchData();
   }, []);
 
   const handleCreateOrder = async (values) => {
     try {
       if (!values) return;
-      console.log("Creating order with values:", values);
       
       const res = await Orders.Create(values);
       if (res.success) {
@@ -181,13 +180,13 @@ export default function OrderList() {
           setOrder(null);
           setAdding(true);
         }}>
-          <Plus size={16} /> Add Order
+          <Plus size={16} /> New Order
         </button>
       </div>
 
       <div className="my-2">
         <Table
-          rowSelection={{fixed: true, columnWidth: 50}}
+          // rowSelection={{fixed: true, columnWidth: 50}}
           columns={columns}
           dataSource={items}
           scroll={{ x: "max-content" }}
@@ -300,19 +299,6 @@ export default function OrderList() {
               <button className="btn btn-secondary btn-sm" onClick={goBack}>
                 <ArrowLeft size={16} /> Back
               </button>
-              <Popconfirm
-                placement="bottomRight"
-                title="Add order?"
-                description="Are you sure you want to add this order?"
-                okText="Yes"
-                cancelText="No"
-                icon={<CircleHelp size={16} className="m-1" />}
-                onConfirm={() => handleCreateOrder(newOrder)}
-              >
-                <button className="btn btn-primary btn-sm w-22">
-                  <Check size={16} /> Save
-                </button>
-              </Popconfirm>
             </div>
             <div className="flex flex-col gap-3 sm:gap-6 mt-4">
               {/* Error Display Area */}
@@ -374,6 +360,22 @@ export default function OrderList() {
                   min={1}
                 />
               </div>
+              <div className="flex mt-2 justify-center sm:justify-end items-center">
+                <Popconfirm
+                  placement="bottomRight"
+                  title="Send order?"
+                  description="Are you sure you want to send this order?"
+                  okText="Yes"
+                  cancelText="No"
+                  icon={<CircleHelp size={16} className="m-1" />}
+                  onConfirm={() => handleCreateOrder(newOrder)}
+                >
+                  <button className="btn btn-primary">
+                    Send Order <SendHorizonal size={18} />
+                  </button>
+                </Popconfirm>
+              </div>
+
             </div>
           </div>
         )}

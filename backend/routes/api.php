@@ -38,7 +38,7 @@ Route::get('/email/verify', function () {
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return response()->json(['message' => 'Verification email sent.']);
-})->middleware(['auth:sanctum', 'signed', 'throttle:6,1'])->name('verification.resend');
+})->middleware(['auth:sanctum', 'throttle:3,1'])->name('verification.resend');
 
 
 Route::middleware(["auth:sanctum", 'verified'])->group(function(){

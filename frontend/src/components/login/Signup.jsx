@@ -1,30 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Auth from "../../assets/api/Auth";
-import { Tabs } from 'antd';
+import { Tabs, message } from 'antd';
 import { ArrowLeft, ArrowRight, Check, Loader2} from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { login, setLoading } from "../Redux/slices/AuthSlice"
 import { addUser } from "../Redux/slices/UserSlice"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "../../assets/images/icon.png"
 
 export default function SignTabs() {
     const [activeTab, setActiveTab] = useState("Login");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [messageApi, contextHolder] = message.useMessage();
+
+    useEffect(() => {
+        if (searchParams.get('verified') === '1') {
+            messageApi.success('Email verified successfully! You can now log in.');
+            setSearchParams({});
+        }
+        
+        const error = searchParams.get('error');
+        if (error === 'invalid_verification_link') {
+            messageApi.error('Invalid verification link. Please request a new one.');
+            setSearchParams({});
+        } else if (error === 'verification_link_expired') {
+            messageApi.error('Verification link has expired. Please request a new one.');
+            setSearchParams({});
+        }
+    }, [searchParams]);
+
     const tabsContent = [
         // { label: "Sign Up", child: <SignupForm setActiveTab={setActiveTab} /> },
         { label: "Login", child: <LoginForm setActiveTab={setActiveTab} /> }
     ];
     return (
-            <div className="w-full flex justify-center items-center rounded-none md:rounded-2xl p-4 md:p-8">
-                <Tabs
-                    activeKey={activeTab}
-                    animated
-                    centered
-                    onTabClick={(key) => setActiveTab(key)}
-                    items={tabsContent.map((t, i) => ({ label: t.label, key: t.label, children: t.child }))}
-                />
-            </div>
+        <div className="w-full flex justify-center items-center rounded-none md:rounded-2xl p-4 md:p-8">
+            {contextHolder}
+            <Tabs
+                activeKey={activeTab}
+                animated
+                centered
+                onTabClick={(key) => setActiveTab(key)}
+                items={tabsContent.map((t, i) => ({ label: t.label, key: t.label, children: t.child }))}
+            />
+        </div>
     );
 }
 

@@ -23,7 +23,7 @@ export const fetchInitialData = async (dispatch, user) => {
     }
   };
   
-  if (user?.role === "admin") {
+  if (user?.email_verified_at && user?.role === "admin") {
     
     promises.push(
       Providers.GetAll()
@@ -38,10 +38,10 @@ export const fetchInitialData = async (dispatch, user) => {
       promises.push(
       Orders.GetAll()
         .then(res => handleResponse(res, setOrders, "Orders"))
-        .catch(error => { console.error("Error fetching orders:", error) }) // ⬅️ ajout ici
+        .catch(error => { console.error("Error fetching orders:", error)})
     );
   }
-  if (user?.role === "admin" || user?.role === "employe") {
+  if (user?.email_verified_at && (user?.role === "admin" || user?.role === "employe")) {
     promises.push(
       Medicines.GetAll()
         .then(res => handleResponse(res, setMedicines, "Medicines"))

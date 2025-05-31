@@ -30,7 +30,7 @@ class StockSeeder extends Seeder
                     $stockData[] = [
                         'medicine_id' => $medicine->id,
                         'location_id' => $location->id,
-                        'quantity' => rand(10, 500),
+                        'quantity' => rand(10, 50),
                         'expiration_date' => Carbon::now()->addDays(rand(30, 1095))->format('Y-m-d'), // Random expiry 30 days to 3 years from now
                         'created_at' => now(),
                         'updated_at' => now(),

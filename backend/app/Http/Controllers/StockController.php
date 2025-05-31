@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Mockery\Matcher\Not;
 
 class StockController extends Controller
 {
@@ -95,12 +97,28 @@ class StockController extends Controller
         $updatedItems = [];
         foreach ($validated as $item) {
             $stock = Stock::findOrFail($item['id']);
-            if (abs($item['quantity']) > $stock->quantity) {
+            if ($item['quantity'] > $stock->quantity) {
                 return response()->json(['error' => 'Insufficient stock quantity for item ID ' . $item['id']], 400);
             }
             $stock->quantity -= $item['quantity'];
             $stock->save();
-            $updatedItems[] = $stock->load(['medicine', 'location']);
+            $stock->load(['medicine', 'location']);
+            if ($stock->medicine->is_low_stock) {
+                $existingNotification = Notification::where('action', $stock->id)
+                    ->where('is_read', false)->where('title', 'Low Stock')
+                    ->first();
+                
+                if (!$existingNotification) {
+                    Notification::create([
+                        'title' => 'Low Stock',
+                        'message' => 'The stock for ' . $stock->medicine->name . ' at ' . $stock->location->name . ' is low.',
+                        'is_read' => false,
+                        'action' => $stock->medicine->id,
+                    ]);
+                }
+            }
+
+            $updatedItems[] = $stock;
         }
         return response()->json(['message' => count($updatedItems) . ' stock items updated successfully.', 'data' => $updatedItems]);
     }
