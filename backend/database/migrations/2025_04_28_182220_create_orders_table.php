@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('medicine_id')->constrained('medicines')->onDelete('cascade');
+            $table->foreignId('provider_id')->nullable()->constrained('providers')->onDelete('set null');
+            $table->foreignId('medicine_id')->nullable()->constrained('medicines')->onDelete('set null');
             $table->unsignedInteger('quantity');
             $table->timestamps();
         });

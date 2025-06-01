@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import Providers from "../../assets/api/Providers"; // Assuming you have a Providers API similar to Medicines
+import Providers from "../../assets/api/Providers";
 import { fetchInitialData } from "../Redux/fetchData";
-import { deleteProvider, updateProvider, addProvider } from "../Redux/slices/ProviderSlice"; // Assuming these actions exist
+import { deleteProvider, updateProvider, addProvider } from "../Redux/slices/ProviderSlice";
 
 import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User } from "lucide-react";
 import Fuse from "fuse.js";
 import { TextInput } from "../UI/MyInputs";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 
 export default function ProviderList() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { providers } = useSelector((state) => state.providers);
+  const { loading } = useSelector((state) => state.loading);
   const [provider, setProvider] = useState(null);
   const [editedProvider, setEditedProvider] = useState(null);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newProvider, setNewProvider] = useState({ name: "", email: "", phone: "" });
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
@@ -35,20 +37,17 @@ export default function ProviderList() {
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [provider, adding]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-    if (!providers.length) {
-      await fetchInitialData(dispatch); 
-    }
-    setLoading(false);
-  };
-  fetchData();
-  }, []);
+   useEffect(() => {
+       const fetchData = async () => {
+       if (!loading && !providers.length) {
+         await fetchInitialData(dispatch, user);
+       }
+       dispatch(setLoading(false));
+     };
+     fetchData();
+     }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -219,7 +218,7 @@ export default function ProviderList() {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),

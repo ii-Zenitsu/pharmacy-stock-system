@@ -1,30 +1,33 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import Locations from "../../assets/api/Locations"; // Assume Locations API service exists
-import { fetchInitialData } from "../Redux/fetchData"; // Assuming this can also fetch locations
+import Locations from "../../assets/api/Locations";
+import { fetchInitialData } from "../Redux/fetchData";
 import { deleteLocation, updateLocation, addLocation } from "../Redux/slices/LocationSlice";
 
 import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, MapPin } from "lucide-react";
 import Fuse from "fuse.js";
 import { TextInput } from "../UI/MyInputs";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 export default function LocationList() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { locations } = useSelector((state) => state.locations);
+  const { loading } = useSelector((state) => state.loading);
   const [location, setLocation] = useState(null);
   const [editedLocation, setEditedLocation] = useState(null);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newLocation, setNewLocation] = useState({ name: "", description: "" });
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
 
   const [query, setQuery] = useState("");
-  const locationsFuse = new Fuse(locations, { keys: ["name", "description"], threshold: 0.3 });
+  const locationsFuse = new Fuse(locations, { keys: ["name"], threshold: 0.3 });
   const items = query ? locationsFuse.search(query).map((r) => r.item) : locations;
 
   useEffect(() => {
@@ -33,20 +36,17 @@ export default function LocationList() {
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [location, adding]);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchData = async () => {
-      if (!locations.length) {
-        await fetchInitialData(dispatch); 
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, [dispatch, locations.length]); 
+    if (!loading && !locations.length) {
+      await fetchInitialData(dispatch, user);
+    }
+    dispatch(setLoading(false));
+  };
+  fetchData();
+  }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -99,13 +99,8 @@ export default function LocationList() {
   const editLocation = async (values) => {
     try {
       if (!values) return;
-      
-      const dataToUpdate = { ...values };
-      delete dataToUpdate.id; 
-      delete dataToUpdate.created_at;
-      delete dataToUpdate.updated_at;
 
-      const response = await Locations.Update(values.id, dataToUpdate);
+      const response = await Locations.Update(values.id, values);
       if (response.success) {
         dispatch(updateLocation(response.data));
         messageApi.success("Location updated successfully");
@@ -174,9 +169,9 @@ export default function LocationList() {
           </svg>
           <input type="search" className="grow" onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, description" />
         </label>
-        <button className="btn btn-primary btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
+        {user?.role === 'admin' && <button className="btn btn-primary btn-sm" onClick={() => { setLocation(null); setAdding(true); setEditing(true); }}>
           <Plus size={16} /> Add Location
-        </button>
+        </button>}
       </div>
 
       <div className="my-2">
@@ -186,7 +181,7 @@ export default function LocationList() {
           dataSource={items}
           scroll={{ x: "max-content" }}
           rowKey="id"
-          loading={{ indicator: <Spin indicator={<Loader2 className="h-8 w-8 animate-spin text-primary" />} />, spinning: loading }}
+          loading={{ indicator: ( <Spin indicator={<span className="loading loading-bars loading-primary" />}/>), spinning: loading,}}
           pagination={{ pageSize: pageSize, pageSizeOptions: [6, 12, 24, 50], className: "m-2", position: ["topCenter"], showSizeChanger: true, onShowSizeChange: (c, size) => {setPageSize(size);} }}
         />
       </div>
@@ -200,12 +195,14 @@ export default function LocationList() {
               {!editing ? (
                 <>
                   <button className="btn btn-secondary btn-sm" onClick={goBack}> <ArrowLeft size={16} /> Back </button>
-                  <div className="flex gap-2">
-                    <button className="btn btn-primary btn-sm w-22" onClick={() => setEditing(true)}> <Pencil size={16} /> Edit </button>
-                    <Popconfirm placement="bottomLeft" title="Delete the Location?" description="Are you sure you want to delete this location?" okText="Yes" cancelText="No" icon={<CircleHelp size={16} className="m-1" />} onConfirm={() => handleDelete(location.id)}>
-                      <button className="btn btn-error btn-sm w-22"> <Trash2 size={16} /> Delete </button>
-                    </Popconfirm>
-                  </div>
+                  {user?.role === 'admin' && (
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary btn-sm w-22" onClick={() => setEditing(true)}> <Pencil size={16} /> Edit </button>
+                      <Popconfirm placement="bottomLeft" title="Delete the Location?" description="Are you sure you want to delete this location?" okText="Yes" cancelText="No" icon={<CircleHelp size={16} className="m-1" />} onConfirm={() => handleDelete(location.id)}>
+                        <button className="btn btn-error btn-sm w-22"> <Trash2 size={16} /> Delete </button>
+                      </Popconfirm>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>

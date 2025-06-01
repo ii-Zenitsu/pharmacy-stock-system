@@ -22,9 +22,15 @@ class DatabaseSeeder extends Seeder
             ProviderSeeder::class,
             UserSeeder::class,
             MedicineSeeder::class,
+<<<<<<< HEAD
             LocationSeeder::class, // Added
             MedicineLocationSeeder::class, // Added
             PharmacySettingsSeeder::class,
+=======
+            LocationSeeder::class,
+            StockSeeder::class,
+            NotificationSeeder::class,
+>>>>>>> 87df2349673e19937f41dafe1a3341f6554cea07
         ]);
     }
 }

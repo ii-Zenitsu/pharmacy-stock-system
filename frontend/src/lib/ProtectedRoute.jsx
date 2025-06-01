@@ -3,15 +3,40 @@ import { Navigate, Outlet } from "react-router-dom";
 
 const ProtectedRoute = ({ requiredRoles }) => {
   const {user, isLoading } = useSelector(state => state.auth);
-  // Wait until loading finishes
+
   if (isLoading) {
-    return null; // or a loader if you want
+    return null;
   }
 
-  // Now decide what to do based on role
-  if (!user || !requiredRoles.includes(user.role)) {
+  if (!user) {
+    return <Navigate to="/sign" replace />;
+  }
+
+  if (!user.email_verified_at) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  if (!requiredRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
+  return <Outlet />;
+};
+
+const EmailVerifiedRoute = () => {
+  const { user, isLoading } = useSelector(state => state.auth);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!user) {
+    return <Navigate to="/sign" replace />;
+  }
+
+  if (!user.email_verified_at) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
   return <Outlet />;
 };
 
@@ -34,8 +59,7 @@ const RedirectByRole = () => {
   if (user?.role === 'employe') {
     return <Navigate to="/" replace />;
   }
-
   return <Navigate to="/" replace />;
 };
 
-export { ProtectedRoute, LoggedOut, RedirectByRole };
+export { ProtectedRoute, EmailVerifiedRoute, LoggedOut, RedirectByRole };

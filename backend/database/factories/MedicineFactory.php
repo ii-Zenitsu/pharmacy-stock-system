@@ -17,15 +17,13 @@ class MedicineFactory extends Factory
      */
     public function definition(): array
     {
+        $dosages = [ '500-mg', '250-mg', '100-mg', '5-ml', '10-mg', '20-mg', '50-mg', '1-g'];
         return [
             'name' => $this->faker->word(),
             'bar_code' => $this->faker->unique()->ean13(), // Generates a unique 13-digit barcode
-            'dosage' => $this->faker->randomElement(['500-mg', '250-mg', '100-mg', '5-ml']),
+            'dosage' => $this->faker->randomElement($dosages),
             'formulation' => $this->faker->randomElement(['tablet', 'syrup', 'injection', 'ointment']),
-            // 'expiration_date' => $this->faker->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
-            // 'quantity' => $this->faker->numberBetween(10, 100),
-            'price' => $this->faker->randomFloat(2, 10, 500),
-            // 'location' => $this->faker->randomElement(['A1', 'B2', 'C3', 'D4']),
+            'price' => $this->faker->randomFloat(2, 10, 150),
             'alert_threshold' => $this->faker->numberBetween(5, 20),
             'provider_id' => Provider::inRandomOrder()->first()->id,
             'automatic_reorder' => $this->faker->boolean(),

@@ -11,6 +11,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
+        'provider_id',
         'medicine_id',
         'quantity',
     ];
@@ -19,4 +20,10 @@ class Order extends Model
     {
         return $this->belongsTo(Medicine::class);
     }
+    
+      public function provider()
+    {
+        return $this->belongsTo(Provider::class);
+    }
 }
+

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Mail\OrderNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Mail;
 
 class Medicine extends Model
 {
@@ -29,9 +31,18 @@ class Medicine extends Model
         'reorder_quantity' => 'integer',
     ];
 
+    protected $attributes = [
+        'alert_threshold' => 10,
+    ];
+
     public function provider()
     {
         return $this->belongsTo(Provider::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
     }
 
     public function orders()
@@ -123,6 +134,33 @@ class Medicine extends Model
     {
         return $this->is_low_stock && $this->automatic_reorder;
     }
+
+    public function reorder(): bool
+{
+    try {
+        if (!$this->automatic_reorder || !$this->provider) {
+            return false;
+        }
+
+        $quantity = $this->reorder_quantity ?? ($this->alert_threshold * 2);
+
+        Order::create([
+            'medicine_id' => $this->id,
+            'provider_id' => $this->provider_id,
+            'quantity' => $quantity,
+        ]);
+
+        Mail::to($this->provider->email)->send(new OrderNotification(
+            $this->provider, 
+            $this, 
+            $quantity
+        ));        
+        return true;
+
+    } catch (\Exception $e) {
+        return false;
+    }
+}
 
     /**
      * Scope a query to only include medicines that have at least one expired batch.

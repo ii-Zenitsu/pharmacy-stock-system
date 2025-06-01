@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+<<<<<<< HEAD
 import { Loader2, Package, Building2, TrendingUp, AlertTriangle, ArrowRight } from "lucide-react";
 import { Table, Spin, message } from "antd";
 
@@ -26,11 +27,22 @@ const AdminDashboard = () => {
     sales: 0,
     lowStock: 0,
   });
+=======
+import { useDispatch, useSelector } from "react-redux";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+const Dashboard = () => {
+>>>>>>> 87df2349673e19937f41dafe1a3341f6554cea07
   const [recentSales, setRecentSales] = useState([]);
   const [lowStockList, setLowStockList] = useState([]);
   const [salesChart, setSalesChart] = useState({ labels: [], data: [] });
   const [loading, setLoading] = useState(true);
+  const { user } = useSelector((state) => state.auth);
+  const { medicines } = useSelector((state) => state.medicines);
+  const { providers } = useSelector((state) => state.providers);
 
+<<<<<<< HEAD
   useEffect(() => {
     setLoading(true);
     if (!medicines || !providers) {
@@ -99,6 +111,40 @@ const AdminDashboard = () => {
   };
 
   const chartData = {
+=======
+  const dispatch = useDispatch();
+
+    useEffect(() => {
+      const fetchData = async () => {
+      if (!medicines.length || !providers.length) {
+        await fetchInitialData(dispatch, user);
+      }
+      setLoading(false);
+    };
+    fetchData();
+    }, []);
+
+  if (loading) return <div>Loading dashboard...</div>;
+
+  return (
+    <div style={{ padding: "2rem" }}>
+      <h2>Pharmacy Dashboard</h2>
+      {/* Summary Cards */}
+      <div style={{ display: "flex", gap: "2rem", margin: "2rem 0" }}>
+        <SummaryCard title="Medicines" value={medicines.length} color="#4e73df" />
+        <SummaryCard title="Providers" value={providers.length} color="#1cc88a" />
+        {/* <SummaryCard title="Sales" value={recentSales.length} color="#36b9cc" />
+        <SummaryCard title="Low Stock" value={lowStockList.length} color="#e74a3b" /> */}
+      </div>
+
+      {/* Main Content */}
+      <div style={{ display: "flex", gap: "2rem" }}>
+        {/* Sales Chart */}
+        <div style={{ flex: 2, background: "#fff", padding: "1.5rem", borderRadius: "8px" }}>
+          <h3>Sales (Last 7 Days)</h3>
+          <Bar
+            data={{
+>>>>>>> 87df2349673e19937f41dafe1a3341f6554cea07
               labels: salesChart.labels,
               datasets: [
                 {
