@@ -18,6 +18,7 @@ import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import Dashboard from './components/admin/dashboard';
+import LogsPage from './components/admin/logs';
 import Profile from './components/users/profile';
 import { fetchInitialData } from './components/Redux/fetchData';
 import Home from './components/users/home';
@@ -102,7 +103,7 @@ function App() {
                     <Route path="orders" element={<h1>Orders</h1>} />
                     <Route path="providers" element={<ProvidersList />} />
                     <Route path="users" element={<UsersList />} />
-                    <Route path="logs" element={<h1>Logs</h1>} />
+                    <Route path="logs" element={<LogsPage />} />
                   </Route>
                 </Route>
               </Route>

@@ -9,6 +9,7 @@ use Illuminate\Database\Seeder;
 use Database\Seeders\UserSeeder;
 use Database\Seeders\LocationSeeder; // Added
 use Database\Seeders\MedicineLocationSeeder; // Added
+use Database\Seeders\PharmacySettingsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
             MedicineSeeder::class,
             LocationSeeder::class, // Added
             MedicineLocationSeeder::class, // Added
+            PharmacySettingsSeeder::class,
         ]);
     }
 }

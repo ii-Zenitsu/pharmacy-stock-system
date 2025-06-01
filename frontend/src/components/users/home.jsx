@@ -2,13 +2,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { setPublicMedicines } from "../Redux/slices/MedicineSlice";
 import Medicines from "../../assets/api/Medicines";
+import PharmacySettings from "../../assets/api/PharmacySettings";
 
 export default function Home() {
   const { publicMedicines } = useSelector((state) => state.medicines);
   const dispatch = useDispatch();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [currentDay, setCurrentDay] = useState("");
   const [openingHours, setOpeningHours] = useState("");
+  const [specialNotes, setSpecialNotes] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,48 +28,54 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await Medicines.GetAllPublic();
-      if (response.success) {
-        dispatch(setPublicMedicines(response.data));
+      const [medicinesResponse, statusResponse] = await Promise.all([
+        Medicines.GetAllPublic(),
+        PharmacySettings.GetCurrentStatus()
+      ]);
+
+      if (medicinesResponse.success) {
+        dispatch(setPublicMedicines(medicinesResponse.data));
       } else {
-        console.log("Failed to fetch medicines:", response.message);
+        console.log("Failed to fetch medicines:", medicinesResponse.message);
       }
+
+      if (statusResponse.success) {
+        const { is_open, opening_hours, special_notes, current_day } = statusResponse.data;
+        setIsOpen(is_open);
+        setOpeningHours(opening_hours);
+        setSpecialNotes(special_notes);
+        setCurrentDay(current_day);
+      } else {
+        console.log("Failed to fetch pharmacy status:", statusResponse.message);
+      }
+
+      setIsLoading(false);
     };
     fetchData();
   }, []);
 
-  const checkOpenStatus = () => {
-    const now = new Date();
-    const hour = now.getHours();
-    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
-
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    setCurrentDay(days[day]);
-
-    let open = false;
-    let hours = "";
-
-    if (day >= 1 && day <= 6) {
-      // Monday to Saturday
-      if (hour >= 8 && hour < 13) {
-        open = true;
-      }
-      hours = "08:00 - 13:00";
-    } else {
-      // Sunday closed
-      open = false;
-      hours = "Closed";
-    }
-
-    setIsOpen(open);
-    setOpeningHours(hours);
-  };
-
   useEffect(() => {
-    checkOpenStatus();
-    const interval = setInterval(checkOpenStatus, 60000); // every minute
+    const interval = setInterval(async () => {
+      const response = await PharmacySettings.GetCurrentStatus();
+      if (response.success) {
+        const { is_open, opening_hours, special_notes, current_day } = response.data;
+        setIsOpen(is_open);
+        setOpeningHours(opening_hours);
+        setSpecialNotes(special_notes);
+        setCurrentDay(current_day);
+      }
+    }, 60000); // Update every minute
+
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -79,6 +88,11 @@ export default function Home() {
           </svg>
           <div className="text-green-800 text-base font-medium">
             Opening Hours: <span className="font-bold">{openingHours}</span>
+            {specialNotes && (
+              <div className="text-sm text-green-700 mt-1">
+                Note: {specialNotes}
+              </div>
+            )}
           </div>
         </div>
 

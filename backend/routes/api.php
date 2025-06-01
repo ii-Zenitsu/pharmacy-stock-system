@@ -12,6 +12,8 @@ use App\Http\Middleware\isEmployeMiddleWare;
 use App\Http\Middleware\AlreadyLoggedInMiddleware;
 use App\Http\Middleware\IsAdminEmployeeMiddleware;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\PharmacySettingController;
+use App\Http\Controllers\LocationController;
 
 Route::middleware(AlreadyLoggedInMiddleware::class)->group(function(){
     Route::post("/login", [AuthController::class, 'login']);
@@ -52,6 +54,7 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
     // Admin or Employee routes
     Route::middleware([IsAdminEmployeeMiddleware::class])->group(function(){
         Route::apiResource("medicines",MedicineController::class);
+        Route::apiResource("locations", LocationController::class);
     });
 });
 
@@ -59,3 +62,8 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
 // Public routes
 Route::get("/public/medicines", [MedicineController::class, 'index']);
 Route::get("/public/medicines/{id}", [MedicineController::class, 'show']);
+
+// Pharmacy Settings Routes
+Route::get('/pharmacy/status', [PharmacySettingController::class, 'getCurrentStatus']);
+Route::get('/pharmacy/settings', [PharmacySettingController::class, 'getAllSettings']);
+Route::post('/pharmacy/settings', [PharmacySettingController::class, 'updateSettings'])->middleware('auth:sanctum');

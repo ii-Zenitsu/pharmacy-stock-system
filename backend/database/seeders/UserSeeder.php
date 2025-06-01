@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -19,7 +20,7 @@ class UserSeeder extends Seeder
         foreach ($roles as $role) {
             User::factory()->create([
                 'email' => strtolower($role) . '@example.com',
-                'password' => 'password',
+                'password' => Hash::make('password'),
                 'role' => $role,
             ]);
         }
