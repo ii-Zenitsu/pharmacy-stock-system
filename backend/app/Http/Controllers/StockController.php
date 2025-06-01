@@ -147,7 +147,7 @@ class StockController extends Controller
         
         // Log the checkout activity with total price
         $description = "Checkout processed: " . implode(", ", $logDescriptions) . " | Total Sale: MAD " . number_format($totalPrice, 2);
-        ActivityLog::log('sale', $description);
+        ActivityLog::log('sale', $description); 
         
         return response()->json([
             'message' => count($updatedItems) . ' stock items updated successfully.',

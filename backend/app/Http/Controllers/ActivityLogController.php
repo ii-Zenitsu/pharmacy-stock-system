@@ -7,10 +7,11 @@ use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $logs = ActivityLog::with('user')
-            ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'success' => true,

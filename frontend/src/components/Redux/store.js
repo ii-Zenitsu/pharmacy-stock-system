@@ -9,6 +9,7 @@ import MedicinesReducer from './slices/MedicineSlice';
 import ProvidersReducer from './slices/ProviderSlice';
 import LocationsReducer from './slices/LocationSlice';
 import NotificationReducer from './slices/NotificationSlice';
+import ActivityLogReducer from './slices/ActivityLogSlice';
 
 export const store = configureStore({
     reducer:{
@@ -22,5 +23,6 @@ export const store = configureStore({
         providers: ProvidersReducer,
         locations: LocationsReducer,
         notifications: NotificationReducer,
+        activityLogs: ActivityLogReducer,
     }
 })

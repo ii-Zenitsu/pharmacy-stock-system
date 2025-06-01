@@ -20,6 +20,7 @@ import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import OrderList from './components/orders/OrderList';
+import LogList from './components/admin/LogList';
 import Dashboard from './components/admin/dashboard';
 import Profile from './components/Profile';
 import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
@@ -120,7 +121,7 @@ function App() {
                       <Route path="orders" element={<OrderList />} />
                       <Route path="providers" element={<ProvidersList />} />
                       <Route path="users" element={<UsersList />} />
-                      <Route path="logs" element={<h1>Logs</h1>} />
+                      <Route path="logs" element={<LogList />} />
                     </Route>
                   </Route>
                   <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />} >

@@ -5,6 +5,7 @@ import Medicines from "../../assets/api/Medicines";
 import Providers from "../../assets/api/Providers";
 import Locations from "../../assets/api/Locations";
 import Notifications from "../../assets/api/Notifications";
+import ActivityLogs from "../../assets/api/ActivityLogs";
 
 import { setUsers } from "./slices/UserSlice";
 import { setOrders } from "./slices/OrderSlice"; 
@@ -14,6 +15,7 @@ import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
 import { setStockItems } from "./slices/StockSlice";
 import { setNotifications } from "./slices/NotificationSlice";
+import { setActivityLogs, setRecentLogs } from "./slices/ActivityLogSlice";
 
 
 export const fetchInitialData = async (dispatch, user) => {
@@ -23,8 +25,7 @@ export const fetchInitialData = async (dispatch, user) => {
       dispatch(action(res.data));
     } else {
       console.log(`Failed to fetch data from ${endpoint}: ${res.message}`);
-    }
-  };
+    }  };
     if (user?.email_verified_at && user?.role === "admin") {
     
     promises.push(
@@ -46,6 +47,11 @@ export const fetchInitialData = async (dispatch, user) => {
       Notifications.GetAll()
         .then(res => handleResponse(res, setNotifications, "Notifications"))
         .catch(error => { console.error("Error fetching notifications:", error)})
+    );
+    promises.push(
+      ActivityLogs.GetAll()
+        .then(res => handleResponse(res, setActivityLogs, "Activity Logs"))
+        .catch(error => { console.error("Error fetching activity logs:", error)})
     );
   }
   if (user?.email_verified_at && (user?.role === "admin" || user?.role === "employe")) {
