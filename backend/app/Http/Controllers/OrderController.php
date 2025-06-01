@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Provider;
 use App\Models\Medicine;
+use App\Models\ActivityLog;
 use App\Http\Resources\OrderResource;
 use App\Mail\OrderNotification;
 use Illuminate\Support\Facades\Mail;
@@ -39,6 +40,8 @@ class OrderController extends Controller
             Mail::to($provider->email)->send(new OrderNotification($provider, $medicine, $validated['quantity']));
 
             $order = Order::create($validated);
+
+            ActivityLog::log('order_created', "Created order for {$validated['quantity']} units of {$medicine->name} from provider {$provider->name} (Order ID: {$order->id})");
 
             return response()->json([
                 'success' => true,

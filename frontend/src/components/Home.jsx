@@ -100,7 +100,7 @@ export default function Home() {
 
   useEffect(() => {
     checkOpenStatus();
-    const interval = setInterval(checkOpenStatus, 3600000); // every hour
+    const interval = setInterval(checkOpenStatus, 60000); // every minute
     return () => clearInterval(interval);
   }, []);
 

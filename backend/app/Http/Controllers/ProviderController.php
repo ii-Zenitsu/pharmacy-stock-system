@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProviderResource;
 use App\Models\Provider;
+use App\Models\ActivityLog;
 
 class ProviderController extends Controller
 {
@@ -23,6 +24,9 @@ class ProviderController extends Controller
         ]);
 
         $provider = Provider::create($validatedData);
+        
+        ActivityLog::log('provider_created', "Created new provider: {$provider->name} ({$provider->email}, Phone: {$provider->phone})");
+        
         return new ProviderResource($provider);
     }
 
@@ -42,17 +46,35 @@ class ProviderController extends Controller
             'phone' => 'required|string|max:15',
         ]);
         $provider = Provider::findOrFail($id);
+        $oldName = $provider->name;
+        $oldEmail = $provider->email;
 
         $provider->update($validatedData);
+
+        $changes = [];
+        if ($oldName !== $provider->name) {
+            $changes[] = "name changed from '{$oldName}' to '{$provider->name}'";
+        }
+        if ($oldEmail !== $provider->email) {
+            $changes[] = "email changed from '{$oldEmail}' to '{$provider->email}'";
+        }
+        
+        $changeDescription = !empty($changes) ? " (" . implode(", ", $changes) . ")" : "";
+        ActivityLog::log('provider_updated', "Updated provider: {$provider->name}{$changeDescription} (ID: {$provider->id})");
 
         return new ProviderResource($provider);
     }
 
     public function destroy($id)
     {
-        
         $provider = Provider::findOrFail($id);
+        $providerName = $provider->name;
+        $providerEmail = $provider->email;
+        
         $provider->delete();
+        
+        ActivityLog::log('provider_deleted', "Deleted provider: {$providerName} ({$providerEmail}, ID: {$id})");
+        
         return response()->json(['message' => 'Provider deleted successfully.']);
     }
 

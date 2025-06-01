@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,8 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
         Route::apiResource("orders",OrderController::class);
         Route::put("/stock/{id}", [StockController::class, 'update']);
         Route::delete("/stock/{id}", [StockController::class, 'destroy']);
+        Route::get('activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('activity-logs/recent', [ActivityLogController::class, 'recent']);
     });
 
     // Admin or Employee routes
@@ -76,6 +79,7 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
 // Public routes
 Route::get("/public/medicines", [MedicineController::class, 'publicIndex']);
 Route::get("/public/medicines/{id}", [MedicineController::class, 'show']);
+
 // order email preview route
 // Route::get('/email-preview/order-notification', function () {
 //     $provider = (object) ['name' => 'Provider Ltd.'];
@@ -91,21 +95,17 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     // Find the user by ID
     $user = User::findOrFail($request->route('id'));
     
-    // Check if the hash is valid
     if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
         return redirect('http://localhost:5173/sign?error=invalid_verification_link');
     }
     
-    // Check if the URL has expired
     if ($request->hasValidSignature() === false) {
         return redirect('http://localhost:5173/sign?error=verification_link_expired');
     }
     
-    // Mark email as verified
     if (! $user->hasVerifiedEmail()) {
         $user->markEmailAsVerified();
     }
     
-    // Redirect to frontend with success
     return redirect('http://localhost:5173/sign?verified=1');
 })->name('verification.verify');

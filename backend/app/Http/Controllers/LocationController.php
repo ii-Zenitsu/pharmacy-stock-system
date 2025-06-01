@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Location;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 // Removed: use App\Http\Resources\LocationResource;
 
@@ -28,6 +29,9 @@ class LocationController extends Controller
         ]);
 
         $location = Location::create($validated);
+        
+        ActivityLog::log('location_created', "Created new location: {$location->name}" . ($location->description ? " ({$location->description})" : ""));
+        
         return response()->json($location, 201);
     }
 
@@ -46,6 +50,8 @@ class LocationController extends Controller
     public function update(Request $request, $id)
     {
         $location = Location::findOrFail($id);
+        $oldName = $location->name;
+        $oldDescription = $location->description;
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255|unique:locations,name,' . $location->id,
@@ -53,6 +59,18 @@ class LocationController extends Controller
         ]);
 
         $location->update($validated);
+        
+        $changes = [];
+        if (isset($validated['name']) && $oldName !== $validated['name']) {
+            $changes[] = "name changed from '{$oldName}' to '{$validated['name']}'";
+        }
+        if (array_key_exists('description', $validated) && $oldDescription !== $validated['description']) {
+            $changes[] = "description updated";
+        }
+        
+        $changeDescription = !empty($changes) ? " (" . implode(", ", $changes) . ")" : "";
+        ActivityLog::log('location_updated', "Updated location: {$location->name}{$changeDescription} (ID: {$location->id})");
+        
         return response()->json($location);
     }
 
@@ -62,7 +80,12 @@ class LocationController extends Controller
     public function destroy($id)
     {
         $location = Location::findOrFail($id);
+        $locationName = $location->name;
+        
         $location->delete();
+        
+        ActivityLog::log('location_deleted', "Deleted location: {$locationName} (ID: {$id})");
+        
         return response()->json(['message' => 'Location deleted successfully.']);
     }
 }

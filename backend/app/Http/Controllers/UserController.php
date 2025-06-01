@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 
@@ -42,6 +43,8 @@ class UserController extends Controller
             'password' => bcrypt($request->password),
             'role' => $request->role,
         ]);
+
+        ActivityLog::log('user_created', "Created new user: {$user->first_name} {$user->last_name} ({$user->email}) with role: {$user->role}");
 
         return response()->json([
             'success' => true,
@@ -83,6 +86,9 @@ class UserController extends Controller
         ]);
 
         $user = User::findOrFail($id);
+        $oldEmail = $user->email;
+        $oldRole = $user->role;
+        
         $user->update($request->only(
             'first_name',
             'last_name',
@@ -96,6 +102,20 @@ class UserController extends Controller
             $user->save();
         }
 
+        $changes = [];
+        if ($oldEmail !== $user->email) {
+            $changes[] = "email changed from {$oldEmail} to {$user->email}";
+        }
+        if ($oldRole !== $user->role) {
+            $changes[] = "role changed from {$oldRole} to {$user->role}";
+        }
+        if ($request->filled('password')) {
+            $changes[] = "password updated";
+        }
+        
+        $changeDescription = !empty($changes) ? " (" . implode(", ", $changes) . ")" : "";
+        ActivityLog::log('user_updated', "Updated user: {$user->first_name} {$user->last_name}{$changeDescription} (ID: {$user->id})");
+
         return response()->json([
             'success' => true,
             'data' => $user,
@@ -108,7 +128,12 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
+        $userName = "{$user->first_name} {$user->last_name}";
+        $userEmail = $user->email;
+        
         $user->delete();
+
+        ActivityLog::log('user_deleted', "Deleted user: {$userName} ({$userEmail}, ID: {$id})");
 
         return response()->json([
             'success' => true,
