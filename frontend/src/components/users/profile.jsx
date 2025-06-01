@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { message } from "antd";
-import { Loader2, Check, X, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Check, X, Lock, Eye, EyeOff, User } from "lucide-react";
 import Users from "../../assets/api/Users";
 import Auth from "../../assets/api/Auth";
 import { axios } from "../../assets/api/axios";
@@ -40,7 +40,6 @@ export default function UserProfile() {
       const response = await axios.put('user/profile', {
         first_name: user.first_name,
         last_name: user.last_name,
-        email: user.email,
         birth_date: user.birth_date
       });
 
@@ -118,11 +117,12 @@ export default function UserProfile() {
       
       {/* Profile Section */}
       <div className="bg-base-100 rounded-xl shadow-lg overflow-hidden max-w-5xl mx-auto">
-        <div className="bg-primary text-primary-content p-6">
-          <div>
+        <div className="bg-primary text-primary-content p-3">
+          <div className="flex items-center gap-2">
+            <User size={26} />
             <h1 className="text-2xl font-bold">Profile Settings</h1>
-            <p className="opacity-80 mt-1">Manage your personal information</p>
           </div>
+          <p className="opacity-80 mt-1">Manage your personal information</p>
         </div>
 
         <div className="p-6">
@@ -164,23 +164,6 @@ export default function UserProfile() {
 
               <label className="form-control w-full">
                 <div className="label">
-                  <span className="label-text font-semibold">Email</span>
-                </div>
-                <input
-                  type="email"
-                  className={`input input-bordered w-full ${errors?.email ? "input-error" : ""}`}
-                  value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
-                />
-                {errors?.email && (
-                  <div className="label">
-                    <span className="label-text-alt text-error">{errors.email[0]}</span>
-                  </div>
-                )}
-              </label>
-
-              <label className="form-control w-full">
-                <div className="label">
                   <span className="label-text font-semibold">Birth Date</span>
                 </div>
                 <input
@@ -196,30 +179,6 @@ export default function UserProfile() {
                   </div>
                 )}
               </label>
-
-              <div className="form-control w-full">
-                <div className="label">
-                  <span className="label-text font-semibold">Role</span>
-                  <span className="label-text-alt text-info">(Requires admin approval to change)</span>
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    className="input input-bordered w-full bg-base-200 cursor-not-allowed"
-                    value={user.role}
-                    disabled
-                    aria-label="User role (read-only)"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="h-5 w-5 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="label">
-                  <span className="label-text-alt text-base-content/70">Your role can only be changed by an administrator</span>
-                </div>
-              </div>
             </div>
 
             <div className="flex justify-end gap-2 mt-8">
@@ -250,14 +209,12 @@ export default function UserProfile() {
 
       {/* Security Section */}
       <div className="bg-base-100 rounded-xl shadow-lg overflow-hidden max-w-5xl mx-auto">
-        <div className="bg-primary text-primary-content p-6">
+        <div className="bg-error text-error-content p-3">
           <div className="flex items-center gap-2">
-            <Lock size={20} />
-            <div>
-              <h1 className="text-2xl font-bold">Security Settings</h1>
-              <p className="opacity-80 mt-1">Update your password</p>
-            </div>
+            <Lock size={26} />
+            <h1 className="text-2xl font-bold">Security Settings</h1>
           </div>
+          <p className="opacity-80 mt-1">Change your password</p>
         </div>
 
         <div className="p-6">
@@ -375,7 +332,7 @@ export default function UserProfile() {
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-error"
                 disabled={securityLoading}
               >
                 {securityLoading ? (
@@ -383,7 +340,7 @@ export default function UserProfile() {
                 ) : (
                   <Check size={16} className="mr-2" />
                 )}
-                Update Password
+                Change Password
               </button>
             </div>
           </form>
