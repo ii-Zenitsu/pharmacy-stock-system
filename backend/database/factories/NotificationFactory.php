@@ -16,7 +16,7 @@ class NotificationFactory extends Factory
      */
     public function definition(): array
     {
-        $titles = [ 'Expired', 'Low Stock', 'Order'];
+        $titles = [ 'Expired', 'Low Stock', 'Auto Order'];
 
         return [
             'title' => $this->faker->randomElement($titles),

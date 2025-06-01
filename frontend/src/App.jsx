@@ -41,7 +41,7 @@ function App() {
 
       const interval = setInterval(() => {
         fetchVitalData(dispatch, user);
-      }, 60000);
+      }, 30000);
   
       return () => clearInterval(interval);
     }

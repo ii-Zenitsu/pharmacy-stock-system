@@ -103,22 +103,36 @@ class StockController extends Controller
             $stock->quantity -= $item['quantity'];
             $stock->save();
             $stock->load(['medicine', 'location']);
-            if ($stock->medicine->is_low_stock) {
-                $existingNotification = Notification::where('action', $stock->medicine->id)
-                    ->where('title', 'Low Stock')->first();
-                
-                if (!$existingNotification) {
-                    Notification::create([
-                        'title' => 'Low Stock',
-                        'medicine' => $stock->medicine->name,
-                        'location' => $stock->location->name,
-                        'action' => $stock->medicine->id,
-                    ]);
-                }
-            }
+
+            $this->handleLowStockActions($stock);
 
             $updatedItems[] = $stock;
         }
         return response()->json(['message' => count($updatedItems) . ' stock items updated successfully.', 'data' => $updatedItems]);
+    }
+
+    private function handleLowStockActions($stock): void
+    {
+        if (!$stock->medicine->is_low_stock) { return;}
+
+        $reordered = $stock->medicine->needs_reorder && $stock->medicine->reorder();
+        $title = $reordered ? 'Auto Order' : 'Low Stock';
+        $this->notify($title, $stock->medicine->name, $stock->location->name, $stock->medicine->id);
+    }
+
+    private function notify(string $title, string $medicine, string $location, int $actionId): void
+    {
+        $exist = Notification::where('action', $actionId)
+            ->where('title', $title)
+            ->first();
+        
+        if (!$exist) {
+            Notification::create([
+                'title' => $title,
+                'medicine' => $medicine,
+                'location' => $location,
+                'action' => $actionId,
+            ]);
+        }
     }
 }

@@ -590,10 +590,10 @@ const setScanResult = (bar_code) => {
 
                   <CheckboxInput
                     label="Automatic Reorder"
-                    checked={editedMedicine?.automatic_reorder}
+                    checked={editedMedicine?.automatic_reorder && !!editedMedicine?.provider_id}
                     onChange={e => setEditedMedicine({ ...editedMedicine, automatic_reorder: e.target.checked })}
                     disabled={!editing}
-                    editing={editing}
+                    editing={editing && !!editedMedicine?.provider_id}
                     name="automatic_reorder"
                     className={errors?.automatic_reorder ? "input-error border-2" : ""}
                   />
@@ -769,11 +769,11 @@ const setScanResult = (bar_code) => {
                   />
                   <CheckboxInput
                     label="Automatic Reorder"
-                    checked={newMedicine.automatic_reorder}
+                    checked={newMedicine.automatic_reorder  && !!newMedicine?.provider_id}
                     onChange={e => setNewMedicine({ ...newMedicine, automatic_reorder: e.target.checked })}
                     name="automatic_reorder"
                     className={errors?.automatic_reorder ? "input-error border-2" : ""}
-                    editing={true}
+                    editing={!!newMedicine?.provider_id}
                   />
                   <TextInput
                     label="Reorder Quantity"

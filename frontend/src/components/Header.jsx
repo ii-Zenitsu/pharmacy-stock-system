@@ -156,11 +156,13 @@ export default function Header() {
 function Cart() {
   const { cartItems, totalItems, totalPrice, totalItemPrice, loading, error, removeItem, updateQuantity, increment, decrement, clear, isAtMaxQuantity } = useCart();
   const [open, setOpen] = useState(false);
+  const [checkLoad, setCheckLoad] = useState(false);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
   const checkout = async () => {
       try {
+        setCheckLoad(true);
         const response = await Stocks.AdjustBatchesQuantity(cartItems);
         if (response.success) {
           dispatch(adjustBatchesQuantity(response.data));
@@ -172,6 +174,8 @@ function Cart() {
         }
       } catch (error) {
         messageApi.error("Checkout failed. Please try again.");
+      } finally {
+        setCheckLoad(false);
       }
     };
 
@@ -210,7 +214,7 @@ function Cart() {
         <>
           <div className="p-2 space-y-2">
             {cartItems.map((cartItem) => (
-              <div key={cartItem.id} className="flex items-center justify-between p-2 border rounded">
+              <div key={cartItem.id} className="flex items-center justify-between p-2 border rounded bg-base-300">
                 <div className="flex-1">
                   <h3 className="text-sm font-medium">{cartItem.name}</h3>
                   <p className="text-xs text-gray-600">{cartItem.price} × {cartItem.quantity}</p>
@@ -219,23 +223,23 @@ function Cart() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => decrement(cartItem.id)}
-                    className="btn btn-circle btn-xs btn-outline"
+                    className="btn btn-circle btn-xs btn-neutral btn-outline"
                   >
-                    <Minus size={10} />
+                    <Minus size={16} strokeWidth={3} />
                   </button>
                   <input
                     type="number"
                     value={cartItem.quantity}
                     onChange={(e) => handleQuantityChange(cartItem.id, e.target.value)}
-                    className="input input-xs w-12 text-center"
+                    className="input input-xs text-sm font-semibold w-12 text-center"
                     min="1"
                   />
                   <button
                     onClick={() => increment(cartItem.id)}
-                    className="btn btn-circle btn-xs btn-outline"
+                    className="btn btn-circle btn-xs btn-neutral btn-outline"
                     disabled={isAtMaxQuantity(cartItem.id)}
                   >
-                    <Plus size={10} />
+                    <Plus size={16} strokeWidth={3} />
                   </button>
                   <button
                     onClick={() => removeItem(cartItem.id)}
@@ -250,7 +254,7 @@ function Cart() {
           <div className="p-3 border-t rounded-b-lg">
             <div className="flex justify-between items-center font-semibold">
               <span className='self-end'>Total:<span className="text-lg text-secondary align- ml-2">{totalPrice.toFixed(2)} MAD</span></span>
-              <button className="btn btn-primary btn-sm" onClick={checkout}>Checkout</button>
+              <button className="btn btn-primary btn-sm w-20" disabled={checkLoad} onClick={checkout}>{checkLoad ? <span className="loading loading-spinner"></span> : "Checkout"}</button>
             </div>
           </div>
         </>
@@ -282,10 +286,17 @@ function Notification(){
   const { notifications, loading, error, fetchAll, deleteOne, clearAll, getCount } = useNotification();
   const [open, setOpen] = useState(false);
   const [loadings, setLoadings] = useState([]);
-  const [messageApi, contextHolder] = message.useMessage();
+  const [placement, setPlacement] = useState('bottom');
+
 
   useEffect(() => {
-      fetchAll();
+    fetchAll();
+    const updatePlacement = () => setPlacement(window.innerWidth < 768 ? 'bottom' : 'bottomRight');
+
+    updatePlacement();
+    window.addEventListener('resize', updatePlacement);
+    
+    return () => window.removeEventListener('resize', updatePlacement);
   }, []);
 
   const handleDeleteOne = async (id) => {
@@ -343,14 +354,15 @@ function Notification(){
       ) : (
         <div className="p-2 space-y-2">
           {notifications.map((n) => {
+            const badgeClass = n.title === 'Auto Order' ? 'badge-info' : n.title === 'Low Stock' ? 'badge-warning' : 'badge-neutral';
             const message = `${n.title} at ${n.location}`
             const date = `${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}`
             return (
-            <div key={n.id} className="flex items-center justify-between p-1.5 border rounded">
+            <div key={n.id} className="flex items-center justify-between p-1.5 border rounded bg-base-300">
               <div className="flex-1">
-                <h3 className="text-sm font-medium">{n.medicine}<span className='badge badge-warning badge-xs font-extrabold ml-2 px-1'>{n.title}</span></h3>
-                <p className="text-xs text-gray-600 mt-1" title={`${message} for ${n.medicine} on ${date}`}>{message}</p>
-                <p className="text-xs text-gray-400 mt-1">{date}</p>
+                <h3 className="text-base font-medium">{n.medicine}<span className={`badge badge-xs text-xs font-semibold ml-2 px-1 ${badgeClass}`}>{n.title}</span></h3>
+                <p className="text-xs text-gray-600" title={`${message} for ${n.medicine} on ${date}`}>{message}</p>
+                <p className="text-xs mt-1">{new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
               <button className="btn btn-circle btn-xs btn-error ml-2" disabled={loadings[n.id]} onClick={() => handleDeleteOne(n.id)}>
                 {loadings[n.id] ? <span className="loading loading-spinner loading-xs"></span> : <X size={20} />}
@@ -368,11 +380,10 @@ function Notification(){
       open={open}
       onOpenChange={setOpen}
       trigger="click"
-      placement="bottomRight"
+      placement={placement}
       content={content}
       color='#e1eebc'
     >
-      {contextHolder}
       <button className="btn btn-ghost btn-warning btn-circle hover:ring ring-offset-2 ring-neutral ring-offset-base-100 hover:scale-105 transition-transform duration-100 relative">
         <Bell />
         {getCount() > 0 && (
