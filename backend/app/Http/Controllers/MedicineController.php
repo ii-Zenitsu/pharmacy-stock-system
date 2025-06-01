@@ -57,7 +57,7 @@ class MedicineController extends Controller
             'formulation' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'alert_threshold' => 'nullable|integer|min:0',
+            'alert_threshold' => 'required|integer|min:0',
             'provider_id' => 'nullable|exists:providers,id',
             'automatic_reorder' => 'boolean',
             'reorder_quantity' => 'nullable|integer|min:1|required_if:automatic_reorder,true',

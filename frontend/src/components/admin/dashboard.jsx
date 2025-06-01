@@ -30,6 +30,7 @@ const AdminDashboard = () => {
   const [lowStockList, setLowStockList] = useState([]);
   const [salesChart, setSalesChart] = useState({ labels: [], data: [] });
   const [loading, setLoading] = useState(true);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     setLoading(true);

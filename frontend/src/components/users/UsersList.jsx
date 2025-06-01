@@ -7,42 +7,34 @@ import Fuse from "fuse.js"
 import { setUsers, deleteUser, updateUser, addUser } from "../Redux/slices/UserSlice"
 import { SideLogo } from "../login/Signup"
 import Auth from "../../assets/api/Auth"
+import { fetchInitialData } from "../Redux/fetchData"
+import { setLoading } from "../Redux/slices/LoadingSlice"
 
 export default function UsersList() {
   const dispatch = useDispatch()
   const { users } = useSelector(state => state.users)
+  const { loading } = useSelector(state => state.loading)
+  const currentUser = useSelector(state => state.auth.user)
   const [user, setUser] = useState(null)
   const [editedUser, setEditedUser] = useState(null)
   const [editing, setEditing] = useState(false)
   const [adding, setAdding] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [messageApi, contextHolder] = message.useMessage()
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
   
   const [query, setQuery] = useState("")
   const usersFuse = new Fuse(users, { keys: ["first_name", "last_name", "email"], threshold: 0.3 })
   const items = query ? usersFuse.search(query).map(r => r.item) : users
-  
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      const response = await Users.GetAll()
-      if (response.success) {
-        dispatch(setUsers(response.data))
-      } else {
-        messageApi.error(response.message)
-      }
-    } catch (error) {
-      console.log("Error fetching Users:", error)
-      messageApi.error("Failed to load Users. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
+   useEffect(() => {
+       const fetchData = async () => {
+       if (!loading && !users.length) {
+         await fetchInitialData(dispatch, user);
+       }
+       dispatch(setLoading(false));
+     };
+     fetchData();
+     }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -63,7 +55,6 @@ export default function UsersList() {
     setUser(user)
     setEditedUser({...user})
   }
-
 
   const goBack = () => {
     setUser(null)
@@ -194,7 +185,7 @@ export default function UsersList() {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),

@@ -21,6 +21,7 @@ class MedicineResource extends JsonResource
             return [
                 'name' => $this->name,
                 'price' => $this->price,
+                'image' => $this->image ? url(Storage::url($this->image)) : null,
             ];
         }
 
@@ -32,12 +33,14 @@ class MedicineResource extends JsonResource
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
                 'price' => $this->price,
+                'total_quantity' => $this->total_quantity,
                 'image' => $this->image ? url(Storage::url($this->image)) : null,
                 'alert_threshold' => $this->alert_threshold,
                 'automatic_reorder' => $this->automatic_reorder,
                 'reorder_quantity' => $this->reorder_quantity,
                 'provider_id' => $this->provider_id,
                 'provider' => $this->provider,
+                'stocks' => $this->stocks,
                 // 'orders' => $this->orders,
                 'created_at' => $this->created_at,
             ];
@@ -51,6 +54,9 @@ class MedicineResource extends JsonResource
                 'dosage' => $this->dosage,
                 'formulation' => $this->formulation,
                 'price' => $this->price,
+                'total_quantity' => $this->total_quantity,
+                'image' => $this->image ? url(Storage::url($this->image)) : null,
+                'stocks' => $this->stocks,
             ];
         }
 

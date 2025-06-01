@@ -55,8 +55,12 @@ export default class Medicines {
   static async Delete(id) {
     return await this.request('delete', `medicines/${id}`, null, "Deleting medicine");
   }
-
+  
   static async GetAllPublic() {
-    return await this.request('get', 'public/medicines', null, "Getting public medicines");
+    return await this.request('get', 'public/medicines', null, "Getting all public medicines");
+  }
+  
+  static async GetOnePublic(id) {
+    return await this.request('get', `public/medicines/${id}`, null, "Fetching public medicine details");
   }
 }

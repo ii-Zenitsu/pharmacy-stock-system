@@ -94,6 +94,7 @@ export default class Auth {
       return res.data;
       
     } catch (error) {
+      console.error('Login error:', error);
       if (!isAxiosError(error)) {
         return defaultError
       }
@@ -124,7 +125,6 @@ export default class Auth {
       };
     }
   }
-
   static async GetUser() {
     try {
       const res = await axios.get("user");
@@ -135,6 +135,20 @@ export default class Auth {
         message: isAxiosError(error) 
           ? error.response?.data?.message || "Server Error"
           : "Server Error"
+      };
+    }
+  }
+
+  static async ResendVerificationEmail() {
+    try {
+      const res = await axios.post("email/resend");
+      return { success: true, message: res.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: isAxiosError(error) 
+          ? error.response?.data?.message || "Failed to send verification email"
+          : "Failed to send verification email"
       };
     }
   }

@@ -6,21 +6,23 @@ import '@ant-design/v5-patch-for-react-19';
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setStatus } from './components/Redux/slices/AuthSlice'
-import { LoggedOut, ProtectedRoute, RedirectByRole } from './lib/ProtectedRoute'
+import { LoggedOut, ProtectedRoute, EmailVerifiedRoute, RedirectByRole } from './lib/ProtectedRoute'
 
 import Auth from './assets/api/Auth'
+import Home from './components/Home';
 import Menu from './components/Menu';
 import Header from './components/Header'
 import SignTabs from './components/login/Signup'
+import EmailVerification from './components/EmailVerification'
 import UsersList from './components/users/UsersList';
 import StockList from './components/stock/StockList';
 import MedicinesList from './components/medicines/MedicinesList';
 import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
+import OrderList from './components/orders/OrderList';
 import Dashboard from './components/admin/dashboard';
 import Profile from './components/users/profile';
-import { fetchInitialData } from './components/Redux/fetchData';
-import Home from './components/users/home';
+import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
 
 function App() {
   const dispatch = useDispatch();
@@ -32,9 +34,20 @@ function App() {
       .then(result => {
         setStatus(result);
       });
-
-    fetchInitialData(dispatch, user);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (user) {
+    fetchInitialData(dispatch, user);
+
+      const interval = setInterval(() => {
+        fetchVitalData(dispatch, user);
+      }, 30000);
+  
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
 
   return (
     <>
@@ -57,6 +70,8 @@ function App() {
                 Table: {
                   rowHoverBg: "#d5f796",
                   headerBg: "#e1eebc",
+                  headerSortActiveBg: "#d6f796c2",
+                  headerSortHoverBg: "#d6f796c2",
                 },
                 Button: {
                   colorTextLightSolid: "rgb(0,0,0)"
@@ -69,40 +84,47 @@ function App() {
                 },
                 Radio: {
                   buttonSolidCheckedColor: "rgb(0,0,0)"
+                },
+                Select: {
+                  colorBorder: "rgba(0,0,0,0)",
+                  activeBorderColor: "rgba(0,0,0,0)",
+                  activeOutlineColor: "rgba(0,0,0,0)",
+                  hoverBorderColor: "rgba(0,0,0,0)",
+                  colorTextDisabled: "rgb(0,0,0)",
+                  colorBgContainerDisabled: "rgba(0,0,0,0)"
                 }
               }
             }}
-          >
+            >
             <Routes>
               <Route path='/' element={<Header />}>
-                <Route index element={<Home />} />
-                
-                {/* Public routes */}
+                <Route path='/' element={<Home/>} />
+                {/* <Route path='/profile' element={<h1>Profile</h1>} /> */}
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
+                <Route path="verify-email" element={<EmailVerification />} />
 
-                {/* Protected routes that don't need menu layout */}
-                <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
-                  <Route path="profile" element={<Profile />} />
-                </Route>
-
-                {/* Menu routes with sidebar layout */}
-                <Route path='menu' element={<Menu />}>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  {/* Admin and Employee routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="medicines" element={<MedicinesList />} />
-                    <Route path="stock" element={<StockList />} />
-                    <Route path="locations" element={<LocationsList />} />
+                <Route element={<EmailVerifiedRoute />}>
+                  <Route path='menu' element={<Menu />}>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    {/* Admin and Employee routes */}
+                    <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="medicines" element={<MedicinesList />} />
+                      <Route path="stock" element={<StockList />} />
+                      <Route path="locations" element={<LocationsList />} />
+                    </Route>
+                    {/* Admin routes */}
+                    <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
+                      <Route path="orders" element={<OrderList />} />
+                      <Route path="providers" element={<ProvidersList />} />
+                      <Route path="users" element={<UsersList />} />
+                      <Route path="logs" element={<h1>Logs</h1>} />
+                    </Route>
                   </Route>
-                  {/* Admin routes */}
-                  <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
-                    <Route path="orders" element={<h1>Orders</h1>} />
-                    <Route path="providers" element={<ProvidersList />} />
-                    <Route path="users" element={<UsersList />} />
-                    <Route path="logs" element={<h1>Logs</h1>} />
+                  <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />} >
+                    <Route path="profile" element={<Profile />} />
                   </Route>
                 </Route>
               </Route>
@@ -114,4 +136,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
