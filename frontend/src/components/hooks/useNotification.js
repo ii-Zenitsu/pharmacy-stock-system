@@ -77,7 +77,7 @@ export const useNotification = () => {
 
   // Delete notification
   const deleteOne = async (id) => {
-    setLoading(true);
+    // setLoading(true);
     setError(null);
     try {
       const response = await Notifications.Delete(id);
@@ -91,9 +91,10 @@ export const useNotification = () => {
     } catch (err) {
       setError('Failed to delete notification');
       return { success: false, message: 'Failed to delete notification' };
-    } finally {
-      setLoading(false);
     }
+    // finally {
+    //   setLoading(false);
+    // }
   };
 
   // Get notification by ID
@@ -112,7 +113,7 @@ export const useNotification = () => {
   };
 
   const clearAll = async () => {
-    setLoading(true);
+    // setLoading(true);
     setError(null);
     try {
       const response = await Notifications.DeleteAll();
@@ -126,9 +127,10 @@ export const useNotification = () => {
     } catch (err) {
       setError('Failed to delete all notifications');
       return { success: false, message: 'Failed to delete all notifications' };
-    } finally {
-      setLoading(false);
     }
+    // finally {
+    //   setLoading(false);
+    // }
   };
 
   return {

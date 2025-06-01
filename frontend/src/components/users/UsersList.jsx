@@ -8,16 +8,17 @@ import { setUsers, deleteUser, updateUser, addUser } from "../Redux/slices/UserS
 import { SideLogo } from "../login/Signup"
 import Auth from "../../assets/api/Auth"
 import { fetchInitialData } from "../Redux/fetchData"
+import { setLoading } from "../Redux/slices/LoadingSlice"
 
 export default function UsersList() {
   const dispatch = useDispatch()
   const { users } = useSelector(state => state.users)
+  const { loading } = useSelector(state => state.loading)
   const currentUser = useSelector(state => state.auth.user)
   const [user, setUser] = useState(null)
   const [editedUser, setEditedUser] = useState(null)
   const [editing, setEditing] = useState(false)
   const [adding, setAdding] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [messageApi, contextHolder] = message.useMessage()
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
   
@@ -25,15 +26,15 @@ export default function UsersList() {
   const usersFuse = new Fuse(users, { keys: ["first_name", "last_name", "email"], threshold: 0.3 })
   const items = query ? usersFuse.search(query).map(r => r.item) : users
 
-  useEffect(() => {
-      const fetchData = async () => {
-      if (!users) {
-        await fetchInitialData(dispatch, currentUser);
-      }
-      setLoading(false);
-    };
-    fetchData();
-    }, []);
+   useEffect(() => {
+       const fetchData = async () => {
+       if (!loading && !users.length) {
+         await fetchInitialData(dispatch, user);
+       }
+       dispatch(setLoading(false));
+     };
+     fetchData();
+     }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -184,7 +185,7 @@ export default function UsersList() {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),

@@ -15,6 +15,11 @@ class Location extends Model
         'description',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     /**
      * The medicines stored at this location, including batch details.
      */

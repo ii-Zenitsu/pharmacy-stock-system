@@ -33,4 +33,9 @@ class Stock extends Model
     {
         return $this->belongsTo(Location::class);
     }
+
+    public function scopeExpired($query)
+    {
+        return $query->where('expiration_date', '<', now())->where('quantity', '>', 0);
+    }
 }

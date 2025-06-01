@@ -8,6 +8,7 @@ import Notifications from "../../assets/api/Notifications";
 
 import { setUsers } from "./slices/UserSlice";
 import { setOrders } from "./slices/OrderSlice"; 
+import { setLoading } from "./slices/LoadingSlice";
 import { setMedicines } from "./slices/MedicineSlice";
 import { setProviders } from "./slices/ProviderSlice";
 import { setLocations } from "./slices/LocationSlice";
@@ -66,8 +67,52 @@ export const fetchInitialData = async (dispatch, user) => {
   }
 
   try {
+    dispatch(setLoading(true));
     await Promise.all(promises);
   } catch (error) {
     console.error("An error occurred while fetching initial data concurrently:", error);
+  } finally {
+    dispatch(setLoading(false));
   }
 };
+
+export const fetchVitalData = async (dispatch, user) => {
+  const promises = [];
+  const handleResponse = (res, action, endpoint) => {
+    if (res.success) {
+      dispatch(action(res.data));
+    } else {
+      console.log(`Failed to fetch data from ${endpoint}: ${res.message}`);
+    }
+  };
+    if (user?.email_verified_at && user?.role === "admin") {
+      promises.push(
+      Orders.GetAll()
+        .then(res => handleResponse(res, setOrders, "Orders"))
+        .catch(error => { console.error("Error fetching orders:", error)})
+    );
+    promises.push(
+      Notifications.GetAll()
+        .then(res => handleResponse(res, setNotifications, "Notifications"))
+        .catch(error => { console.error("Error fetching notifications:", error)})
+    );
+  }
+  if (user?.email_verified_at && (user?.role === "admin" || user?.role === "employe")) {
+    promises.push(
+      Medicines.GetAll()
+        .then(res => handleResponse(res, setMedicines, "Medicines"))
+        .catch(error => { console.error("Error fetching medicines:", error)})
+    );
+    promises.push(
+      Stocks.GetAll()
+      .then(res => handleResponse(res, setStockItems, "Stocks"))
+      .catch(error => { console.error("Error fetching stocks:", error)})
+    );
+  }
+
+  try {
+    await Promise.all(promises);
+  } catch (error) {
+    console.error("An error occurred while fetching vital data concurrently:", error);
+  }
+}

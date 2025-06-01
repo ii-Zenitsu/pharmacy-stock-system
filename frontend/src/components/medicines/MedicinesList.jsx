@@ -12,6 +12,7 @@ import defaultPic from "../../assets/images/defaultPic.png";
 import { CheckboxInput, FileInput, SearchSelectInput, SelectInput, TextInput } from "../UI/MyInputs";
 import QRCodeScanner from "../UI/QrCodeScanner";
 import { useCart } from "../hooks/useCart";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 
 export default function MedicinesList() {
@@ -27,6 +28,7 @@ function AdminList({user}) {
   const { medicines } = useSelector((state) => state.medicines);
   const { providers } = useSelector((state) => state.providers);
   const { stockItems } = useSelector((state) => state.stock);
+  const { loading } = useSelector((state) => state.loading);
   const [medicine, setMedicine] = useState(null);
   const [editedMedicine, setEditedMedicine] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -34,7 +36,6 @@ function AdminList({user}) {
   const [preview, setPreview] = useState(null);
   const [openScanner, setOpenScanner] = useState(false);
   const [newMedicine, setNewMedicine] = useState({ name: "", bar_code: "", dosage: "-mg", formulation: "syrup", price: 0, image: null, alert_threshold: 10, provider_id: "", automatic_reorder: false, reorder_quantity: 1 });
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
@@ -44,15 +45,15 @@ function AdminList({user}) {
   const items = query ? medicinesFuse.search(query).map((r) => r.item) : medicines;
   
 
-  useEffect(() => {
-    const fetchData = async () => {
-    if (!medicines.length) {
-      await fetchInitialData(dispatch, user);
-    }
-    setLoading(false);
-  };
-  fetchData();
-  }, []);
+   useEffect(() => {
+       const fetchData = async () => {
+       if (!loading && !medicines.length) {
+         await fetchInitialData(dispatch, user);
+       }
+       dispatch(setLoading(false));
+     };
+     fetchData();
+     }, []);
 
   // useEffect(() => {
   //   if (medicine || adding) {
@@ -386,7 +387,7 @@ const setScanResult = (bar_code) => {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),
@@ -801,8 +802,8 @@ function EmployeList({ user }) {
   const dispatch = useDispatch();
   const { medicines } = useSelector((state) => state.medicines);
   const { stockItems } = useSelector((state) => state.stock);
+  const { loading } = useSelector((state) => state.loading);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 10);
   const [query, setQuery] = useState("");
   const [openScanner, setOpenScanner] = useState(false);
@@ -811,16 +812,15 @@ function EmployeList({ user }) {
   const medicinesFuse = new Fuse(medicines || [], { keys: ["name", "bar_code", "formulation"], threshold: 0.3 });
   const items = query && medicines?.length ? medicinesFuse.search(query).map((r) => r.item) : medicines || [];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      if ((!medicines || medicines.length === 0) && user) {
-        await fetchInitialData(dispatch, user);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, [dispatch, user, medicines?.length]);
+   useEffect(() => {
+     const fetchData = async () => {
+     if (!loading && !medicines.length) {
+       await fetchInitialData(dispatch, user);
+     }
+     dispatch(setLoading(false));
+   };
+   fetchData();
+   }, []);
 
 
   const showMedicineDetails = (medicine) => {
@@ -1015,7 +1015,7 @@ function EmployeList({ user }) {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),

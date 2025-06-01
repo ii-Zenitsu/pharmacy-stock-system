@@ -281,6 +281,7 @@ function Cart() {
 function Notification(){
   const { notifications, loading, error, fetchAll, deleteOne, clearAll, getCount } = useNotification();
   const [open, setOpen] = useState(false);
+  const [loadings, setLoadings] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
@@ -288,21 +289,31 @@ function Notification(){
   }, []);
 
   const handleDeleteOne = async (id) => {
-    const result = await deleteOne(id);
-    if (result.success) {
-      messageApi.success("Notification deleted successfully!");
-    } else {
-      messageApi.error(result.message || "Failed to delete notification");
-    }
+    setLoadings((prev) => {
+      const newLoadings = [...prev];
+      newLoadings[id] = true;
+      return newLoadings;
+    });
+    await deleteOne(id);
+    setLoadings((prev) => {
+      const newLoadings = [...prev];
+      newLoadings[id] = false;
+      return newLoadings;
+    });
   };
 
   const handleClearAll = async () => {
-    const result = await clearAll();
-    if (result.success) {
-      messageApi.success("All notifications cleared!");
-    } else {
-      messageApi.error(result.message || "Failed to clear notifications");
-    }
+    setLoadings((prev) => {
+      const newLoadings = [...prev];
+      newLoadings[0] = true;
+      return newLoadings;
+    });
+    await clearAll();
+    setLoadings((prev) => {
+      const newLoadings = [...prev];
+      newLoadings[0] = false;
+      return newLoadings;
+    });
   };
 
   const content = loading ? (
@@ -317,8 +328,9 @@ function Notification(){
           <button
             onClick={handleClearAll}
             className="btn btn-error btn-xs"
+            disabled={loadings[0]}
           >
-            Clear All
+            Clear All {loadings[0] && <span className="loading loading-spinner loading-xs"></span>}
           </button>
         )}
       </div>
@@ -340,8 +352,8 @@ function Notification(){
                 <p className="text-xs text-gray-600 mt-1" title={`${message} for ${n.medicine} on ${date}`}>{message}</p>
                 <p className="text-xs text-gray-400 mt-1">{date}</p>
               </div>
-              <button className="btn btn-circle btn-xs btn-error ml-2" onClick={() => handleDeleteOne(n.id)}>
-                <X size={20} />
+              <button className="btn btn-circle btn-xs btn-error ml-2" disabled={loadings[n.id]} onClick={() => handleDeleteOne(n.id)}>
+                {loadings[n.id] ? <span className="loading loading-spinner loading-xs"></span> : <X size={20} />}
               </button>
             </div>
           )}

@@ -9,18 +9,19 @@ import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, User, Package, SendHorizonal } from "lucide-react";
 import Fuse from "fuse.js";
 import { TextInput, SelectInput, SearchSelectInput } from "../UI/MyInputs";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 export default function OrderList() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { orders } = useSelector((state) => state.orders);
   const { providers } = useSelector((state) => state.providers);
+  const { loading } = useSelector((state) => state.loading);
   const [order, setOrder] = useState(null);
   const [adding, setAdding] = useState(false);
   const [newOrder, setNewOrder] = useState({ provider_id: "", medicine_id: "", quantity: 1 });
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [availableMedicines, setAvailableMedicines] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
@@ -41,14 +42,14 @@ export default function OrderList() {
   }, [order, adding]);
 
  useEffect(() => {
-    const fetchData = async () => {
-    if (!orders) {
-      await fetchInitialData(dispatch, user);
-    }
-    setLoading(false);
-  };
-  fetchData();
-  }, []);
+     const fetchData = async () => {
+     if (!loading && !orders.length) {
+       await fetchInitialData(dispatch, user);
+     }
+     dispatch(setLoading(false));
+   };
+   fetchData();
+   }, []);
 
   const handleCreateOrder = async (values) => {
     try {
@@ -195,7 +196,7 @@ export default function OrderList() {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),

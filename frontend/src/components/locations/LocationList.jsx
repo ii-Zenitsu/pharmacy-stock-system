@@ -9,17 +9,19 @@ import { message, Popconfirm, Table, Spin } from "antd";
 import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, Plus, Info, TriangleAlert, MapPin } from "lucide-react";
 import Fuse from "fuse.js";
 import { TextInput } from "../UI/MyInputs";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 export default function LocationList() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { locations } = useSelector((state) => state.locations);
+  const { loading } = useSelector((state) => state.loading);
   const [location, setLocation] = useState(null);
   const [editedLocation, setEditedLocation] = useState(null);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newLocation, setNewLocation] = useState({ name: "", description: "" });
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
@@ -38,10 +40,10 @@ export default function LocationList() {
 
 useEffect(() => {
     const fetchData = async () => {
-    if (!locations) {
+    if (!loading && !locations.length) {
       await fetchInitialData(dispatch, user);
     }
-    setLoading(false);
+    dispatch(setLoading(false));
   };
   fetchData();
   }, []);
@@ -97,13 +99,8 @@ useEffect(() => {
   const editLocation = async (values) => {
     try {
       if (!values) return;
-      
-      const dataToUpdate = { ...values };
-      delete dataToUpdate.id; 
-      delete dataToUpdate.created_at;
-      delete dataToUpdate.updated_at;
 
-      const response = await Locations.Update(values.id, dataToUpdate);
+      const response = await Locations.Update(values.id, values);
       if (response.success) {
         dispatch(updateLocation(response.data));
         messageApi.success("Location updated successfully");
@@ -184,7 +181,7 @@ useEffect(() => {
           dataSource={items}
           scroll={{ x: "max-content" }}
           rowKey="id"
-          loading={{ indicator: <Spin indicator={<Loader2 className="h-8 w-8 animate-spin text-primary" />} />, spinning: loading }}
+          loading={{ indicator: ( <Spin indicator={<span className="loading loading-bars loading-primary" />}/>), spinning: loading,}}
           pagination={{ pageSize: pageSize, pageSizeOptions: [6, 12, 24, 50], className: "m-2", position: ["topCenter"], showSizeChanger: true, onShowSizeChange: (c, size) => {setPageSize(size);} }}
         />
       </div>

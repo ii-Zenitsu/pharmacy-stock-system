@@ -21,8 +21,7 @@ import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import OrderList from './components/orders/OrderList';
 import Dashboard from './components/admin/dashboard';
-import { fetchInitialData } from './components/Redux/fetchData';
-import CartExample from './components/cart/CartExample';
+import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
 
 function App() {
   const dispatch = useDispatch();
@@ -37,8 +36,17 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
+    if (user) {
     fetchInitialData(dispatch, user);
+
+      const interval = setInterval(() => {
+        fetchVitalData(dispatch, user);
+      }, 60000);
+  
+      return () => clearInterval(interval);
+    }
   }, [user]);
+
 
   return (
     <>
@@ -91,7 +99,6 @@ function App() {
               <Route path='/' element={<Header />}>
                 <Route path='/' element={<Home/>} />
                 <Route path='/profile' element={<h1>Profile</h1>} />
-                <Route path='/cart' element={<CartExample />} />
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>

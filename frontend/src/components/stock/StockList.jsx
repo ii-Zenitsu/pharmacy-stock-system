@@ -10,6 +10,7 @@ import { CircleHelp, Pencil, Trash2, Loader2, ArrowLeft, ArrowRight, X, Check, P
 import Fuse from "fuse.js";
 import { TextInput, SelectInput, SearchSelectInput } from "../UI/MyInputs";
 import QRCodeScanner from "../UI/QrCodeScanner";
+import { setLoading } from "../Redux/slices/LoadingSlice";
 
 export default function StockList() {
   const dispatch = useDispatch();
@@ -17,6 +18,7 @@ export default function StockList() {
   const { stockItems } = useSelector((state) => state.stock);
   const { medicines } = useSelector((state) => state.medicines);
   const { locations } = useSelector((state) => state.locations);
+  const { loading } = useSelector((state) => state.loading);
   const [stockItem, setStockItem] = useState(null);
   const [editedStockItem, setEditedStockItem] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -27,7 +29,6 @@ export default function StockList() {
     quantity: 0, 
     expiration_date: ""
   });
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
   const [pageSize, setPageSize] = useState(window.innerWidth <= 768 ? 8 : 6);
@@ -48,15 +49,15 @@ export default function StockList() {
     }
   }, [stockItem, adding]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!stockItems.length) {
-        await fetchInitialData(dispatch, user); 
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+   useEffect(() => {
+       const fetchData = async () => {
+       if (!loading && !stockItems.length) {
+         await fetchInitialData(dispatch, user);
+       }
+       dispatch(setLoading(false));
+     };
+     fetchData();
+     }, []);
 
   const handleDelete = async (id) => {
     try {
@@ -260,7 +261,7 @@ export default function StockList() {
             indicator: (
               <Spin
                 indicator={
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="loading loading-bars loading-primary" />
                 }
               />
             ),
@@ -393,6 +394,7 @@ export default function StockList() {
                   placeholder="Select expiry date"
                   name="expiration_date"
                   className={errors?.expiration_date ? "input-error border-2" : ""}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
@@ -483,6 +485,7 @@ export default function StockList() {
                   name="expiration_date"
                   className={errors?.expiration_date ? "input-error border-2" : ""}
                   editing={true}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
