@@ -21,14 +21,10 @@ import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import OrderList from './components/orders/OrderList';
 import Dashboard from './components/admin/dashboard';
-<<<<<<< HEAD
 import LogsPage from './components/admin/logs';
 import Profile from './components/users/profile';
-import { fetchInitialData } from './components/Redux/fetchData';
 import Home from './components/users/home';
-=======
 import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
->>>>>>> 87df2349673e19937f41dafe1a3341f6554cea07
 
 function App() {
   const dispatch = useDispatch();
