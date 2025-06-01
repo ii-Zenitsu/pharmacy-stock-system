@@ -74,17 +74,17 @@ Route::middleware(["auth:sanctum", 'verified'])->group(function(){
 
 
 // Public routes
-Route::get("/public/medicines", [MedicineController::class, 'index']);
+Route::get("/public/medicines", [MedicineController::class, 'publicIndex']);
 Route::get("/public/medicines/{id}", [MedicineController::class, 'show']);
 // order email preview route
-Route::get('/email-preview/order-notification', function () {
-    $provider = (object) ['name' => 'Provider Ltd.'];
-    $medicine = (object) ['name' => 'Paracetamol', 'formulation' => 'tablet'];
-    $quantity = 30;
-    $orderDate = now();
+// Route::get('/email-preview/order-notification', function () {
+//     $provider = (object) ['name' => 'Provider Ltd.'];
+//     $medicine = (object) ['name' => 'Paracetamol', 'formulation' => 'tablet'];
+//     $quantity = 30;
+//     $orderDate = now();
     
-    return view('emails.order-notification', compact('provider', 'medicine', 'quantity', 'orderDate'));
-});
+//     return view('emails.order-notification', compact('provider', 'medicine', 'quantity', 'orderDate'));
+// });
 
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {

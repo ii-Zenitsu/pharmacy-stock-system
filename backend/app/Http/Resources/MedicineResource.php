@@ -20,6 +20,7 @@ class MedicineResource extends JsonResource
         if (!$user) {
             return [
                 'name' => $this->name,
+                'bar_code' => $this->bar_code,
                 'price' => $this->price,
                 'image' => $this->image ? url(Storage::url($this->image)) : null,
             ];

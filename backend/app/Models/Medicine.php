@@ -161,6 +161,17 @@ class Medicine extends Model
         return false;
     }
 }
+    /**
+     * Scope a query to only include available medicines that are not expired.
+     * Usage: Medicine::available()->get();
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->whereHas('inventoryEntries', function ($q) {
+            $q->where('medicine_location.expiration_date', '>=', Carbon::today())
+              ->where('medicine_location.quantity', '>', 0);
+        });
+    }
 
     /**
      * Scope a query to only include medicines that have at least one expired batch.

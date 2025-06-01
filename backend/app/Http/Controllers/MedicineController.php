@@ -17,6 +17,13 @@ class MedicineController extends Controller
         
     }
 
+    public function publicIndex()
+    {
+        $medicines = Medicine::available()->get();
+        return MedicineResource::collection($medicines);
+        
+    }
+
 
     public function show($id)
     {
