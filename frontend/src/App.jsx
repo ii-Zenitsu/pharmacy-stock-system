@@ -21,7 +21,7 @@ import LocationsList from './components/locations/LocationList';
 import ProvidersList from './components/providers/ProviderList';
 import OrderList from './components/orders/OrderList';
 import Dashboard from './components/admin/dashboard';
-import Profile from './components/users/profile';
+import Profile from './components/Profile';
 import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
 
 function App() {

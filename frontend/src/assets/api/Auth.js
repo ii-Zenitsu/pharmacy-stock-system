@@ -152,4 +152,66 @@ export default class Auth {
       };
     }
   }
+
+  static async UpdateProfile(profileData) {
+    const defaultError = {
+      success: false,
+      message: "Server Error",
+      errors: { general: ["Something went wrong"] }
+    };
+
+    try {
+      const res = await axios.put("user/profile", profileData);
+      return res.data;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      if (!isAxiosError(error)) {
+        return defaultError;
+      }
+      
+      if (error.response?.status === 422) {
+        return {
+          ...defaultError,
+          errors: error.response.data.errors,
+          message: error.response.data.message
+        };
+      }
+
+      return {
+        ...defaultError,
+        message: error.response?.data?.message || "Failed to update profile"
+      };
+    }
+  }
+
+  static async UpdatePassword(passwordData) {
+    const defaultError = {
+      success: false,
+      message: "Server Error",
+      errors: { password: ["Something went wrong"] }
+    };
+
+    try {
+      const res = await axios.put("user/password", passwordData);
+      return res.data;
+    } catch (error) {
+      console.error('Update password error:', error);
+      if (!isAxiosError(error)) {
+        return defaultError;
+      }
+      
+      if (error.response?.status === 422) {
+        return {
+          ...defaultError,
+          errors: error.response.data.errors,
+          message: error.response.data.message
+        };
+      }
+
+      return {
+        ...defaultError,
+        message: error.response?.data?.message || "Failed to update password"
+      };
+    }
+  }
 }
