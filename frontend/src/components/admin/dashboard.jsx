@@ -1,461 +1,483 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Loader2, Package, Building2, TrendingUp, AlertTriangle, ArrowRight } from "lucide-react";
-import { Table, Spin, message } from "antd";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Card, Statistic, Row, Col, List, Avatar, Tag, Progress, Spin, Table } from "antd";
+import { 
+  Users, 
+  Package, 
+  ShoppingCart, 
+  Bell, 
+  MapPin, 
+  Truck, 
+  Activity, 
+  TrendingUp, 
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Eye,
+  Calendar
+} from "lucide-react";
+import { fetchInitialData } from "../Redux/fetchData";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const AdminDashboard = () => {
-  const { medicines } = useSelector((state) => state.medicines);
-  const { providers } = useSelector((state) => state.providers);
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const [stats, setStats] = useState({
-    medicines: 0,
-    suppliers: 0,
-    sales: 0,
-    lowStock: 0,
-  });
-  const [recentSales, setRecentSales] = useState([]);
-  const [lowStockList, setLowStockList] = useState([]);
-  const [salesChart, setSalesChart] = useState({ labels: [], data: [] });
-  const [loading, setLoading] = useState(true);
+export default function Dashboard() {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { users } = useSelector((state) => state.users);
+  const { orders } = useSelector((state) => state.orders);
+  const { medicines } = useSelector((state) => state.medicines);
+  const { stockItems } = useSelector((state) => state.stock);
+  const { providers } = useSelector((state) => state.providers);
+  const { locations } = useSelector((state) => state.locations);
+  const { notifications } = useSelector((state) => state.notifications);
+  const { activityLogs } = useSelector((state) => state.activityLogs);
+  const { loading } = useSelector((state) => state.loading);
+
+  const [dashboardStats, setDashboardStats] = useState({
+    totalUsers: 0,
+    totalOrders: 0,
+    totalMedicines: 0,
+    totalStock: 0,
+    totalProviders: 0,
+    totalLocations: 0,
+    unreadNotifications: 0,
+    lowStockItems: 0,
+    expiringSoonItems: 0,
+    expiredItems: 0,
+    recentOrders: 0,
+    activeUsers: 0
+  });
 
   useEffect(() => {
-    setLoading(true);
-    if (!medicines || !providers) {
-      setLoading(false);
-      return;
+    if (!loading && (!users.length || !orders.length)) {
+      fetchInitialData(dispatch, user);
     }
-    // Low stock calculation
-    const lowStock = medicines.filter(
-      (med) =>
-        typeof med.quantity !== "undefined" &&
-        typeof med.alert_threshold !== "undefined" &&
-        med.quantity <= med.alert_threshold
-    );
-    // TODO: Replace with actual sales data from Redux if available
-    const sales = [];
-    setStats({
-      medicines: medicines.length,
-      suppliers: providers.length,
-      sales: sales.length,
-      lowStock: lowStock.length,
+  }, []);
+
+  useEffect(() => {
+    if (users.length || orders.length || medicines.length) {
+      calculateStats();
+    }
+  }, [users, orders, medicines, stockItems, providers, locations, notifications]);
+
+  const calculateStats = () => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    // Calculate low stock items (quantity < 10)
+    const lowStock = stockItems.filter(item => item.quantity < 10);
+
+    // Calculate expiring soon items (expiring within 14 days)
+    const expiringSoon = stockItems.filter(item => {
+      if (!item.expiration_date) return false;
+      const expirationDate = new Date(item.expiration_date);
+      return expirationDate >= now && expirationDate <= fourteenDaysFromNow && item.quantity > 0;
     });
-    setLowStockList(lowStock);
-    setRecentSales([]); // Replace with actual sales data if available
-    setSalesChart({ labels: [], data: [] }); // Replace with actual chart data if available
-    setLoading(false);
-  }, [medicines, providers]);
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Monthly Sales Overview',
-        font: {
-          size: 16,
-          family: 'Inter'
-        }
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-        },
-        ticks: {
-          font: {
-            family: 'Inter'
-          }
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          font: {
-            family: 'Inter'
-          }
-        }
-      }
-    }
+    // Calculate expired items (expired and still have quantity)
+    const expired = stockItems.filter(item => {
+      if (!item.expiration_date) return false;
+      const expirationDate = new Date(item.expiration_date);
+      return expirationDate < now && item.quantity > 0;
+    });
+
+    // Calculate recent orders (last 7 days)
+    const recentOrders = orders.filter(order => {
+      const orderDate = new Date(order.created_at);
+      return orderDate >= weekAgo;
+    });
+
+    // Calculate active users (users who logged in recently or have recent activity)
+    const activeUsers = users.filter(user => user.email_verified_at);
+
+    // Calculate unread notifications
+    const unreadNotifs = notifications.filter(notif => !notif.read_at);
+
+    setDashboardStats({
+      totalUsers: users.length,
+      totalOrders: orders.length,
+      totalMedicines: medicines.length,
+      totalStock: stockItems.length,
+      totalProviders: providers.length,
+      totalLocations: locations.length,
+      unreadNotifications: unreadNotifs.length,
+      lowStockItems: lowStock.length,
+      expiringSoonItems: expiringSoon.length,
+      expiredItems: expired.length,
+      recentOrders: recentOrders.length,
+      activeUsers: activeUsers.length
+    });
   };
 
-  const chartData = {
-              labels: salesChart.labels,
-              datasets: [
-                {
-        label: 'Sales',
-                  data: salesChart.data,
-        backgroundColor: '#67AE6E',
-        borderRadius: 8,
-      },
-    ],
+  const getRecentActivities = () => {
+    return activityLogs
+      .slice(0, 5)
+      .map(log => ({
+        ...log,
+        avatar: getActivityIcon(log.action),
+        color: getActivityColor(log.action)
+      }));
   };
+
+  const getActivityIcon = (action) => {
+    if (action.includes('user')) return <Users size={16} />;
+    if (action.includes('medicine')) return <Package size={16} />;
+    if (action.includes('order')) return <ShoppingCart size={16} />;
+    if (action.includes('stock')) return <Package size={16} />;
+    if (action.includes('provider')) return <Truck size={16} />;
+    if (action.includes('location')) return <MapPin size={16} />;
+    return <Activity size={16} />;
+  };
+
+  const getActivityColor = (action) => {
+    if (action.includes('created')) return 'green';
+    if (action.includes('updated')) return 'orange';
+    if (action.includes('deleted')) return 'red';
+    if (action.includes('login')) return 'blue';
+    return 'default';
+  };
+
+  const getStockHealthPercentage = () => {
+    if (stockItems.length === 0) return 0;
+    const healthyItems = stockItems.length - dashboardStats.lowStockItems;
+    return Math.round((healthyItems / stockItems.length) * 100);
+  };
+
+  const getOrderStatusDistribution = () => {
+    const statusCount = orders.reduce((acc, order) => {
+      acc[order.status || 'pending'] = (acc[order.status || 'pending'] || 0) + 1;
+      return acc;
+    }, {});
+    return statusCount;
+  };
+
+  const getLowStockItems = () => {
+    return stockItems
+      .filter(item => item.quantity < 10)
+      .slice(0, 5);
+  };
+
+  const getExpiringSoonItems = () => {
+    const now = new Date();
+    const fourteenDaysFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    
+    return stockItems
+      .filter(item => {
+        if (!item.expiration_date) return false;
+        const expirationDate = new Date(item.expiration_date);
+        return expirationDate >= now && expirationDate <= fourteenDaysFromNow && item.quantity > 0;
+      })
+      .sort((a, b) => new Date(a.expiration_date) - new Date(b.expiration_date))
+      .slice(0, 5);
+  };
+
+  const getExpiredItems = () => {
+    const now = new Date();
+    
+    return stockItems
+      .filter(item => {
+        if (!item.expiration_date) return false;
+        const expirationDate = new Date(item.expiration_date);
+        return expirationDate < now && item.quantity > 0;
+      })
+      .sort((a, b) => new Date(b.expiration_date) - new Date(a.expiration_date))
+      .slice(0, 5);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  const stockHealth = getStockHealthPercentage();
+  const recentActivities = getRecentActivities();
+  const lowStockItems = getLowStockItems();
+  const expiringSoonItems = getExpiringSoonItems();
+  const expiredItems = getExpiredItems();
 
   const lowStockColumns = [
     {
-      title: 'Medicine',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text) => <span className="font-semibold">{text}</span>
+      title: "Medicine",
+      dataIndex: "medicine",
+      key: "medicine",
+      render: (medicine) => medicine?.name || "N/A",
     },
     {
-      title: 'Current Stock',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      render: (quantity, record) => (
-        <span className={quantity <= record.alert_threshold ? "text-error font-semibold" : ""}>
-          {quantity}
-        </span>
-      )
+      title: "Location",
+      dataIndex: "location",
+      key: "location", 
+      render: (location) => location?.name || "N/A",
     },
     {
-      title: 'Alert Threshold',
-      dataIndex: 'alert_threshold',
-      key: 'alert_threshold',
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (quantity) => <Tag color="red">{quantity} units</Tag>,
     },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (_, record) => (
-        <span className={`badge ${record.quantity <= record.alert_threshold ? "badge-error" : "badge-success"}`}>
-          {record.quantity <= record.alert_threshold ? "Low Stock" : "In Stock"}
-                  </span>
-      )
-    }
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Spin indicator={<Loader2 className="animate-spin text-primary" size={32} />} />
-    </div>
-  );
-  }
+  const expiringSoonColumns = [
+    {
+      title: "Medicine",
+      dataIndex: "medicine",
+      key: "medicine",
+      render: (medicine) => medicine?.name || "N/A",
+    },
+    {
+      title: "Location",
+      dataIndex: "location",
+      key: "location",
+      render: (location) => location?.name || "N/A",
+    },
+    {
+      title: "Expires In",
+      dataIndex: "expiration_date",
+      key: "expires_in",
+      render: (date) => {
+        if (!date) return "N/A";
+        const now = new Date();
+        const expirationDate = new Date(date);
+        const diffTime = expirationDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return <Tag color="orange">{diffDays} days</Tag>;
+      },
+    },
+  ];
+
+  const expiredColumns = [
+    {
+      title: "Medicine",
+      dataIndex: "medicine",
+      key: "medicine",
+      render: (medicine) => medicine?.name || "N/A",
+    },
+    {
+      title: "Location",
+      dataIndex: "location",
+      key: "location",
+      render: (location) => location?.name || "N/A",
+    },
+    {
+      title: "Expired",
+      dataIndex: "expiration_date",
+      key: "expired_date",
+      render: (date) => {
+        if (!date) return "N/A";
+        const now = new Date();
+        const expirationDate = new Date(date);
+        const diffTime = now - expirationDate;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return <Tag color="red">{diffDays} days ago</Tag>;
+      },
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-base-200">
-      <div className="container mx-auto px-6 py-8">
-        {contextHolder}
-        
-        {/* Stats Cards - Made larger and more prominent */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Package className="text-primary" size={24} />
-              </div>
-    <div>
-                <h3 className="text-base-content/60 text-base font-medium">Total Medicines</h3>
-                <p className="text-2xl font-bold mt-1">{stats.medicines}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-secondary/10 p-3 rounded-lg">
-                <Building2 className="text-secondary" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Suppliers</h3>
-                <p className="text-2xl font-bold mt-1">{stats.suppliers}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-success/10 p-3 rounded-lg">
-                <TrendingUp className="text-success" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Total Sales</h3>
-                <p className="text-2xl font-bold mt-1">{stats.sales}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-error/10 p-3 rounded-lg">
-                <AlertTriangle className="text-error" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Low Stock Items</h3>
-                <p className="text-2xl font-bold mt-1">{stats.lowStock}</p>
-              </div>
-            </div>
-          </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {user?.first_name}!</p>
         </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500">Last updated</p>
+          <p className="text-sm font-medium">{new Date().toLocaleString()}</p>
+        </div>
+      </div>
 
-        {/* Main Content Grid - Adjusted for better proportions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sales Chart - Takes 2 columns */}
-          <div className="lg:col-span-2 bg-base-100 rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Sales Overview</h2>
-              <button className="btn btn-ghost btn-sm gap-2">
-                View Details <ArrowRight size={16} />
-            </button>
-          </div>
-            <div className="h-[400px]">
-              {salesChart.labels.length > 0 ? (
-                <Bar options={chartOptions} data={chartData} />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-base-content/60">
-                  <TrendingUp size={48} className="mb-4" />
-                  <p className="text-lg">No sales data available yet</p>
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Main Statistics Cards */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Users"
+              value={dashboardStats.totalUsers}
+              prefix={<Users className="text-blue-500" size={20} />}
+            />
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title={<div>Orders <Tag color="blue" size="small">this week</Tag></div>}
+              value={dashboardStats.totalOrders}
+              prefix={<ShoppingCart className="text-purple-500" size={20} />}
+            />
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Medicines"
+              value={dashboardStats.totalMedicines}
+              prefix={<Package className="text-green-500" size={20} />}
+            />
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title={<div>Low Stock Items {dashboardStats.lowStockItems > 0 && <Tag color="red" size="small">needs attention</Tag>}</div>}
+              value={dashboardStats.lowStockItems}
+              prefix={<AlertTriangle className="text-red-500" size={20} />}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-          {/* Low Stock Table - Takes 1 column */}
-          <div className="bg-base-100 rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Low Stock Alerts</h2>
-              <button className="btn btn-ghost btn-sm gap-2">
-                View All <ArrowRight size={16} />
-            </button>
-            </div>
-            <div className="overflow-x-auto">
-              <Table
-                dataSource={lowStockList}
-                columns={lowStockColumns}
-                pagination={{ pageSize: 6 }}
-                rowKey="id"
-                className="custom-table"
-                size="middle"
+      {/* Secondary Statistics */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={8} lg={6}>
+          <Card>
+            <Statistic
+              title={<div>Expiring Soon <Tag color="orange" size="small">in 14 days</Tag></div>}
+              value={dashboardStats.expiringSoonItems}
+              prefix={<Calendar className="text-orange-500" size={20} />}
+            />
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={8} lg={6}>
+          <Card>
+            <Statistic
+              title={<div>Expired Items {dashboardStats.expiredItems > 0 && <Tag color="red" size="small">urgent</Tag>}</div>}
+              value={dashboardStats.expiredItems}
+              prefix={<AlertTriangle className="text-red-500" size={20} />}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Charts and Progress */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="Stock Health" extra={<Package size={16} />}>
+            <div className="space-y-4">
+              <Progress
+                percent={stockHealth}
+                status={stockHealth > 80 ? "success" : stockHealth > 60 ? "normal" : "exception"}
+                strokeColor={stockHealth > 80 ? "#52c41a" : stockHealth > 60 ? "#1890ff" : "#ff4d4f"}
               />
+              <div className="flex justify-between text-sm">
+                <span>Healthy Stock: {stockItems.length - dashboardStats.lowStockItems}</span>
+                <span className="text-red-500">Low Stock: {dashboardStats.lowStockItems}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-orange-500">Expiring Soon: {dashboardStats.expiringSoonItems}</span>
+                <span className="text-red-600">Expired: {dashboardStats.expiredItems}</span>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Recent Activity */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="Recent Activity" extra={<Activity size={16} />}>
+            <List
+              itemLayout="horizontal"
+              dataSource={recentActivities}
+              renderItem={(activity) => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar size="small" style={{ backgroundColor: '#f56a00' }}>
+                        {activity.avatar}
+                      </Avatar>
+                    }
+                    title={
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{activity.user_name || 'System'}</span>
+                        <Tag color={activity.color} size="small">
+                          {activity.action.replace('_', ' ')}
+                        </Tag>
+                      </div>
+                    }
+                    description={
+                      <div className="text-xs text-gray-500">
+                        <div>{activity.description}</div>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Clock size={12} />
+                          {new Date(activity.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                    }
+                  />
+                </List.Item>
+              )}
+              locale={{ emptyText: "No recent activity" }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card title="Low Stock Items" extra={<AlertTriangle size={16} />}>
+            {lowStockItems.length > 0 ? (
+              <Table
+                dataSource={lowStockItems}
+                columns={lowStockColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <CheckCircle className="mx-auto mb-2 opacity-50" size={32} />
+                <p className="text-sm">All stock levels are healthy!</p>
+              </div>
+            )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Stock Alerts */}
+      <Row gutter={[16, 16]}>
+
+        <Col xs={24} lg={12}>
+          <Card title="Expiring Soon" extra={<Calendar size={16} />}>
+            {expiringSoonItems.length > 0 ? (
+              <Table
+                dataSource={expiringSoonItems}
+                columns={expiringSoonColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <CheckCircle className="mx-auto mb-2 opacity-50" size={32} />
+                <p className="text-sm">No items expiring soon!</p>
+              </div>
+            )}
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card title="Expired Items" extra={<AlertTriangle className="text-red-500" size={16} />}>
+            {expiredItems.length > 0 ? (
+              <Table
+                dataSource={expiredItems}
+                columns={expiredColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <CheckCircle className="mx-auto mb-2 opacity-50" size={32} />
+                <p className="text-sm">No expired items!</p>
+              </div>
+            )}
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
-};
-
-const EmployeeDashboard = () => {
-  const { medicines } = useSelector((state) => state.medicines);
-  const [stats, setStats] = useState({
-    medicines: 0,
-    lowStock: 0,
-    recentSales: 0,
-    totalValue: 0,
-  });
-  const [lowStockList, setLowStockList] = useState([]);
-  const [recentSales, setRecentSales] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [messageApi, contextHolder] = message.useMessage();
-
-  useEffect(() => {
-    setLoading(true);
-    if (!medicines) {
-      setLoading(false);
-      return;
-    }
-
-    // Calculate low stock medicines
-    const lowStock = medicines.filter(
-      (med) => med.quantity <= med.alert_threshold
-    );
-
-    // Calculate total value of inventory with proper checks
-    const totalValue = medicines.reduce((sum, med) => {
-      const price = parseFloat(med.price) || 0;
-      const quantity = parseInt(med.quantity) || 0;
-      return sum + (price * quantity);
-    }, 0);
-
-    setStats({
-      medicines: medicines.length,
-      lowStock: lowStock.length,
-      recentSales: 0, // TODO: Replace with actual sales data
-      totalValue: totalValue,
-    });
-
-    setLowStockList(lowStock);
-    // TODO: Get recent sales data when available
-    setRecentSales([]);
-    setLoading(false);
-  }, [medicines]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Spin indicator={<Loader2 className="animate-spin text-primary" size={32} />} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-base-200">
-      <div className="container mx-auto px-6 py-8">
-        {contextHolder}
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Package className="text-primary" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Total Medicines</h3>
-                <p className="text-2xl font-bold mt-1">{stats.medicines}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-error/10 p-3 rounded-lg">
-                <AlertTriangle className="text-error" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Low Stock Items</h3>
-                <p className="text-2xl font-bold mt-1">{stats.lowStock}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-success/10 p-3 rounded-lg">
-                <TrendingUp className="text-success" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Recent Sales</h3>
-                <p className="text-2xl font-bold mt-1">{stats.recentSales}</p>
-              </div>
-            </div>
-      </div>
-
-          <div className="bg-base-100 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="bg-secondary/10 p-3 rounded-lg">
-                <Building2 className="text-secondary" size={24} />
-              </div>
-              <div>
-                <h3 className="text-base-content/60 text-base font-medium">Total Value</h3>
-                <p className="text-2xl font-bold mt-1">
-                  ${typeof stats.totalValue === 'number' ? stats.totalValue.toFixed(2) : '0.00'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Sales Table - Takes 2 columns */}
-          <div className="lg:col-span-2 bg-base-100 rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Recent Sales</h2>
-              <button className="btn btn-ghost btn-sm gap-2">
-                View All <ArrowRight size={16} />
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              {recentSales.length > 0 ? (
-                <Table
-                  dataSource={recentSales}
-                  columns={[
-                    {
-                      title: 'Date',
-                      dataIndex: 'date',
-                      key: 'date',
-                      render: (date) => new Date(date).toLocaleDateString(),
-                    },
-                    {
-                      title: 'Medicine',
-                      dataIndex: 'medicine',
-                      key: 'medicine',
-                      render: (text) => <span className="font-medium">{text}</span>,
-                    },
-                    {
-                      title: 'Quantity',
-                      dataIndex: 'quantity',
-                      key: 'quantity',
-                      render: (quantity) => <span className="font-medium">{quantity}</span>,
-                    },
-                    {
-                      title: 'Total',
-                      dataIndex: 'total',
-                      key: 'total',
-                      render: (total) => <span className="font-medium">${total.toFixed(2)}</span>,
-                    },
-                  ]}
-                  pagination={{ pageSize: 6 }}
-                  rowKey="id"
-                  className="custom-table"
-                  size="middle"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-[300px] text-base-content/60">
-                  <TrendingUp size={48} className="mb-4" />
-                  <p className="text-lg">No recent sales data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Low Stock Table - Takes 1 column */}
-          <div className="bg-base-100 rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Low Stock Alerts</h2>
-              <button className="btn btn-ghost btn-sm gap-2">
-                View All <ArrowRight size={16} />
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              {lowStockList.length > 0 ? (
-                <Table
-                  dataSource={lowStockList}
-                  columns={lowStockColumns}
-                  pagination={{ pageSize: 6 }}
-                  rowKey="id"
-                  className="custom-table"
-                  size="middle"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-[300px] text-base-content/60">
-                  <Package size={48} className="mb-4" />
-                  <p className="text-lg">No low stock alerts</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Dashboard = () => {
-  const { user } = useSelector((state) => state.auth);
-  return user?.role === "admin" ? <AdminDashboard /> : <EmployeeDashboard />;
-};
-
-export default Dashboard;
-
+}

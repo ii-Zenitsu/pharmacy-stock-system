@@ -183,6 +183,7 @@ export default function StockList() {
       key: "expiration_date",
       align: "center",
       render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A',
+      sorter: (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date),
     },
     {
       title: <div className="capitalize">Details</div>,

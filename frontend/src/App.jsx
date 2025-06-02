@@ -25,6 +25,18 @@ import Dashboard from './components/admin/dashboard';
 import Profile from './components/Profile';
 import { fetchInitialData, fetchVitalData } from './components/Redux/fetchData';
 
+const RoleBasedRedirect = () => {
+  const { user } = useSelector((state) => state.auth);
+  
+  if (user?.role === "admin") {
+    return <Navigate to="dashboard" replace />;
+  } else if (user?.role === "employe") {
+    return <Navigate to="medicines" replace />;
+  }
+  
+  return <Navigate to="medicines" replace />;
+};
+
 function App() {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
@@ -104,20 +116,18 @@ function App() {
                 <Route element={<LoggedOut />}>
                   <Route path="sign" element={<SignTabs />} />
                 </Route>
-                <Route path="verify-email" element={<EmailVerification />} />
-
-                <Route element={<EmailVerifiedRoute />}>
+                <Route path="verify-email" element={<EmailVerification />} />                <Route element={<EmailVerifiedRoute />}>
                   <Route path='menu' element={<Menu />}>
-                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route index element={<RoleBasedRedirect />} />
                     {/* Admin and Employee routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin", "employe"]} />}>
-                      <Route path="dashboard" element={<Dashboard />} />
                       <Route path="medicines" element={<MedicinesList />} />
                       <Route path="stock" element={<StockList />} />
                       <Route path="locations" element={<LocationsList />} />
                     </Route>
                     {/* Admin routes */}
                     <Route element={<ProtectedRoute requiredRoles={["admin"]} />}>
+                      <Route path="dashboard" element={<Dashboard />} />
                       <Route path="orders" element={<OrderList />} />
                       <Route path="providers" element={<ProvidersList />} />
                       <Route path="users" element={<UsersList />} />

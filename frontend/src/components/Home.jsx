@@ -121,7 +121,7 @@ export default function Home() {
 
           <div className="flex items-center gap-1">
             {days.map((day, idx) => (
-              <div key={idx} className={`badge badge-lg rounded-sm min-h-10 min-w-10 font-semibold ${currentDay !== day.name ? 'badge-outline bg-base-100' : ''} badge-${day.open ? "secondary" : "error"} p-0! sm:px-2!`}>
+              <div key={idx} className={`badge badge-lg rounded-sm min-h-10 min-w-10 font-semibold ${currentDay !== day.name ? 'badge-outline bg-base-100' : ''} ${day.open ? "badge-secondary" : "badge-error"} p-0! sm:px-2!`}>
                 <span className="hidden sm:inline">{day.name}</span><span className="inline sm:hidden">{day.short}</span>
               </div>	
             ))}

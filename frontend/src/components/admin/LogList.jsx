@@ -40,9 +40,7 @@ export default function LogList() {
       const response = await ActivityLogs.GetAll();
       if (response.success) {
         dispatch(setActivityLogs(response.data));
-        messageApi.success("Activity logs refreshed successfully");
-      } else {
-        messageApi.error(response.message);
+        // messageApi.success("Activity logs refreshed successfully");
       }
     } catch (error) {
       messageApi.error("Error refreshing activity logs");

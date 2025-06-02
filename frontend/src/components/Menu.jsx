@@ -55,7 +55,6 @@ function InternalSideBar({ role, isExpanded, onToggleExpand, isMobileContext = f
       { to: "logs", icon: FileText, label: "Logs" },
     ];
     const employeeItems = [
-      { to: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
       { to: "medicines", icon: Pill, label: "Medicines" },
       { to: "locations", icon: MapPin, label: "Locations" },
       { to: "stock", icon: Boxes, label: "Stock" },
